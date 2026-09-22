@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.DoctorInfoMapper">
+
+    <resultMap id="doctorInfoMap" type="com.dyh.doctor.domain.DoctorInfoEntity">
+        <result column="doctor_id" property="doctorId" />
+        <result column="doctor_name" property="doctorName" />
+        <result column="title" property="title" />
+        <result column="specialty" property="specialty" />
+        <result column="work_time" property="workTime" />
+        <result column="doc_status" property="docStatus" />
+        <result column="user_id" property="userId" />
+        <result column="dept_id" property="deptId" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            doctor_info.doctor_id, doctor_info.doctor_name, doctor_info.title, doctor_info.specialty, doctor_info.work_time, doctor_info.doc_status, doctor_info.user_id, doctor_info.dept_id
+        FROM doctor_info
+        WHERE 1 = 1 
+    </sql>
+
+    <sql id="condition">
+        <if test="doctorInfo.doctorId != null">
+             and doctor_info.doctor_id = #{doctorInfo.doctorId}
+        </if>
+        <if test="doctorInfo.title != null and doctorInfo.title != ''">
+             and doctor_info.title LIKE concat('%', #{doctorInfo.title}, '%')
+        </if>
+        <if test="doctorInfo.specialty != null and doctorInfo.specialty != ''">
+             and doctor_info.specialty LIKE concat('%', #{doctorInfo.specialty}, '%')
+        </if>
+        <if test="doctorInfo.workTime != null and doctorInfo.workTime != ''">
+             and doctor_info.work_time LIKE concat('%', #{doctorInfo.workTime}, '%')
+        </if>
+        <if test="doctorInfo.docStatus != null">
+             and doctor_info.doc_status = #{doctorInfo.docStatus}
+        </if>
+        <if test="doctorInfo.userId != null">
+             and doctor_info.user_id = #{doctorInfo.userId}
+        </if>
+        <if test="doctorInfo.deptId != null">
+             and doctor_info.dept_id = #{doctorInfo.deptId}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="doctorInfoMap">
+        <include refid="baseSql"></include>
+        AND doctor_info.doctor_id = #{doctorId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="doctorInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by doctor_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="doctorId">
+        insert into doctor_info(doctor_name, title, specialty, work_time, doc_status, user_id, dept_id)
+        values(#{doctorName}, #{title}, #{specialty}, #{workTime}, #{docStatus}, #{userId}, #{deptId})
+    </insert>
+
+    <update id="update">
+        update doctor_info
+        <set>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="specialty != null and specialty != ''">
+                specialty = #{specialty},
+            </if>
+            <if test="workTime != null and workTime != ''">
+                work_time = #{workTime},
+            </if>
+            <if test="docStatus != null">
+                doc_status = #{docStatus},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId},
+            </if>
+        </set>
+        WHERE doctor_id = #{doctorId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM doctor_info WHERE doctor_id = #{doctorId}
+    </delete>
+</mapper>
+

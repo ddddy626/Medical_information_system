@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑病历 - 医疗系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+        }
+        .btn-primary:hover { box-shadow: 0 5px 20px rgba(0, 212, 255, 0.35); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+        .container { max-width: 860px; margin: 0 auto; padding: 30px; }
+        .form-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: 15px;
+            padding: 24px;
+        }
+        .hint {
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.25);
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+        .form-group select option {
+            color: #111;
+        }
+        .form-group .field-tip {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #888;
+        }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .form-group textarea.tall { min-height: 220px; }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .ocr-source {
+            margin-top: 18px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            font-size: 12px;
+            color: #bbb;
+            white-space: pre-wrap;
+            max-height: 180px;
+            overflow: auto;
+            display: none;
+        }
+        .ocr-source.show { display: block; }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="header">
+        <h1 class="nav-active">编辑病历</h1>
+        <button class="btn btn-secondary" type="button" id="btn-back">返回病历列表</button>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <p class="hint">请先选择一条已成功的挂号，再核对识别文字并保存。识别内容仅供参考，不能替代医生诊断。</p>
+
+            <div class="form-group">
+                <label for="registerSelect">关联挂号（必选）</label>
+                <select id="registerSelect">
+                    <option value="">加载挂号中…</option>
+                </select>
+                <div class="field-tip" id="registerTip">请选择一条已成功挂号的记录；保存时会写入对应挂号号与医生</div>
+            </div>
+            <div class="form-group">
+                <label for="recordNo">病历编号</label>
+                <input id="recordNo" type="text" readonly>
+            </div>
+            <div class="form-group">
+                <label for="chiefComplaint">主诉 / 报告文字</label>
+                <textarea id="chiefComplaint" class="tall" placeholder="识别到的报告文字会填在这里，可自行修改"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="diagnosis">诊断意见</label>
+                <textarea id="diagnosis" placeholder="可填写初步判断，或留空待医生复核"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="treatment">治疗建议</label>
+                <textarea id="treatment" placeholder="可选"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="followUp">随访建议</label>
+                <textarea id="followUp" placeholder="可选"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" type="button" id="btn-cancel">取消</button>
+                <button class="btn btn-primary" type="button" id="btn-save">保存病历</button>
+            </div>
+
+            <div class="ocr-source" id="ocr-source"></div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const params = new URLSearchParams(window.location.search);
+        const rawId = params.get('userId') || localStorage.getItem('userId') || sessionStorage.getItem('patientUserId');
+        const userId = (!rawId || rawId === 'null' || rawId === 'undefined') ? null : String(rawId);
+        const draftKey = 'patientRecordDraft';
+
+        function readDraft() {
+            try {
+                const raw = localStorage.getItem(draftKey) || sessionStorage.getItem(draftKey);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function clearDraft() {
+            try { localStorage.removeItem(draftKey); } catch (e) {}
+            try { sessionStorage.removeItem(draftKey); } catch (e) {}
+        }
+
+        function goList() {
+            const name = params.get('userName')
+                || localStorage.getItem('realName')
+                || sessionStorage.getItem('patientUserName')
+                || '';
+            const q = new URLSearchParams();
+            if (userId) q.set('userId', userId);
+            if (name) q.set('userName', name);
+            const url = 'patient-records.html' + (q.toString() ? ('?' + q.toString()) : '');
+            if (window.opener && !window.opener.closed) {
+                try { window.opener.location.href = url; } catch (e) {}
+                window.close();
+                return;
+            }
+            window.location.href = url;
+        }
+
+        function splitOcr(ocrText) {
+            const lines = String(ocrText || '')
+                .split(/\r?\n/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+            if (lines.length >= 3) {
+                return {
+                    chiefComplaint: lines[0],
+                    diagnosis: lines[1],
+                    treatment: lines.slice(2).join('\n')
+                };
+            }
+            if (lines.length === 2) {
+                return {
+                    chiefComplaint: lines[0],
+                    diagnosis: lines[1],
+                    treatment: ''
+                };
+            }
+            return {
+                chiefComplaint: ocrText,
+                diagnosis: '由检查报告图片OCR提取，仅供参考，请医生复核。',
+                treatment: ''
+            };
+        }
+
+        function fillForm(draft) {
+            const ocrText = (draft && draft.ocrText ? String(draft.ocrText) : '').trim();
+            const parts = splitOcr(ocrText);
+            $('recordNo').value = 'IMG-' + Date.now();
+            $('chiefComplaint').value = parts.chiefComplaint || '';
+            $('diagnosis').value = (draft && draft.diagnosis) || parts.diagnosis || '';
+            $('treatment').value = (draft && draft.treatment) || parts.treatment || '';
+            $('followUp').value = (draft && draft.followUp) || '建议携带原件到院复诊确认。';
+            const src = $('ocr-source');
+            if (ocrText) {
+                src.textContent = '原始识别文字：\n' + ocrText;
+                src.classList.add('show');
+            }
+        }
+
+        let registerList = [];
+
+        function statusText(status) {
+            if (status === 0) return '待接诊';
+            if (status === 1) return '已接诊';
+            if (status === 2) return '已完成';
+            return '状态' + status;
+        }
+
+        function formatTime(v) {
+            if (!v) return '-';
+            return String(v).replace('T', ' ').slice(0, 19);
+        }
+
+        function selectedRegister() {
+            const id = parseInt(($('registerSelect').value || ''), 10);
+            if (!Number.isFinite(id) || id <= 0) return null;
+            return registerList.find((r) => Number(r.registerId) === id) || null;
+        }
+
+        function updateRegisterTip() {
+            const tip = $('registerTip');
+            const reg = selectedRegister();
+            if (!reg) {
+                tip.textContent = registerList.length
+                    ? '请选择一条已成功挂号的记录'
+                    : '当前没有可关联的成功挂号，请先去挂号后再保存病历';
+                return;
+            }
+            tip.textContent = '已选挂号 #' + reg.registerId
+                + ' / ' + (reg.regNo || '-')
+                + '，医生ID ' + (reg.doctorId || '-')
+                + '，科室 ' + (reg.deptName || '-');
+        }
+
+        async function loadRegisters() {
+            const select = $('registerSelect');
+            select.innerHTML = '<option value="">加载挂号中…</option>';
+            registerList = [];
+            if (!userId) {
+                select.innerHTML = '<option value="">请先登录</option>';
+                updateRegisterTip();
+                return;
+            }
+            try {
+                const res = await fetch('/doctor/registerInfo/queryByPage?patientId='
+                    + encodeURIComponent(userId) + '&page=1&size=100', {
+                    credentials: 'include'
+                }).then((r) => r.json());
+                const rows = (res && res.code === 1 && res.content && res.content.content)
+                    ? res.content.content
+                    : [];
+                // 成功挂号：已产生挂号记录即可（待接诊/已接诊/已完成）
+                registerList = rows
+                    .filter((r) => r && r.registerId != null)
+                    .sort((a, b) => Number(b.registerId) - Number(a.registerId));
+
+                if (!registerList.length) {
+                    select.innerHTML = '<option value="">暂无成功挂号，请先去挂号</option>';
+                    updateRegisterTip();
+                    return;
+                }
+
+                select.innerHTML = '<option value="">请选择挂号</option>' + registerList.map((r) => {
+                    const label = [
+                        r.regNo || ('#' + r.registerId),
+                        r.deptName || ('科室' + (r.deptId || '-')),
+                        '医生' + (r.doctorId || '-'),
+                        formatTime(r.visitTime || r.regTime),
+                        statusText(Number(r.regStatus))
+                    ].join(' · ');
+                    return '<option value="' + r.registerId + '">' + label + '</option>';
+                }).join('');
+
+                // 默认选最新一条
+                select.value = String(registerList[0].registerId);
+                updateRegisterTip();
+            } catch (e) {
+                select.innerHTML = '<option value="">挂号列表加载失败</option>';
+                updateRegisterTip();
+            }
+        }
+
+        async function saveRecord() {
+            if (!userId) {
+                alert('请先登录患者账号后再保存');
+                return;
+            }
+            const chiefComplaint = $('chiefComplaint').value.trim();
+            if (!chiefComplaint) {
+                alert('请填写主诉 / 报告文字');
+                return;
+            }
+            const patientId = parseInt(userId, 10);
+            if (!Number.isFinite(patientId) || patientId <= 0) {
+                alert('患者ID无效，请重新登录后再保存');
+                return;
+            }
+            const reg = selectedRegister();
+            if (!reg) {
+                alert('请先选择一条已成功的挂号');
+                return;
+            }
+            const registerId = Number(reg.registerId);
+            const doctorId = Number(reg.doctorId);
+            if (!Number.isFinite(registerId) || registerId <= 0) {
+                alert('所选挂号无效，请重新选择');
+                return;
+            }
+            if (!Number.isFinite(doctorId) || doctorId <= 0) {
+                alert('所选挂号缺少医生信息，请换一条挂号');
+                return;
+            }
+            const btn = $('btn-save');
+            btn.disabled = true;
+            try {
+                const payload = {
+                    recordNo: $('recordNo').value.trim() || ('IMG-' + Date.now()),
+                    chiefComplaint,
+                    diagnosis: $('diagnosis').value.trim(),
+                    treatment: $('treatment').value.trim(),
+                    followUp: $('followUp').value.trim(),
+                    patientId,
+                    registerId,
+                    doctorId,
+                    medStatus: 0
+                };
+                const resp = await fetch('/doctor/recordInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const text = await resp.text();
+                let res = null;
+                try { res = JSON.parse(text); } catch (e) {}
+                if (res && res.code === 1) {
+                    clearDraft();
+                    alert('病历保存成功');
+                    goList();
+                } else {
+                    alert((res && res.msg) || ('保存失败（HTTP ' + resp.status + '）'));
+                }
+            } catch (e) {
+                alert('保存失败：' + (e && e.message ? e.message : '网络错误'));
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        const draft = readDraft();
+        if (!draft || !(draft.ocrText || '').trim()) {
+            alert('没有可编辑的识别内容，请先在病历页上传图片识别');
+            goList();
+        } else {
+            fillForm(draft);
+            loadRegisters();
+        }
+
+        $('registerSelect').addEventListener('change', updateRegisterTip);
+        $('btn-back').addEventListener('click', goList);
+        $('btn-cancel').addEventListener('click', goList);
+        $('btn-save').addEventListener('click', saveRecord);
+    </script>
+</body>
+</html>

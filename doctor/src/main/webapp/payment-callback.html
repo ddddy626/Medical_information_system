@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付回调</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+        }
+        .icon.success { background: #dcfce7; color: #16a34a; }
+        .icon.error { background: #fee2e2; color: #dc2626; }
+        .icon.processing { background: #fef3c7; color: #d97706; }
+        h1 { font-size: 20px; color: #223656; margin-bottom: 12px; }
+        p { font-size: 14px; color: #6b7280; margin-bottom: 8px; }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon processing" id="status-icon">🔄</div>
+        <h1 id="status-title">处理中...</h1>
+        <p id="status-message">正在处理您的支付请求...</p>
+        <button class="btn" id="close-btn" style="display:none;" onclick="window.close()">关闭</button>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        
+        const params = new URLSearchParams(window.location.search);
+        const feeId = params.get('feeId');
+        const method = params.get('method');
+        const amount = params.get('amount');
+
+        const handlePayment = async () => {
+            try {
+                const payMethod = method === 'wechat' ? '微信扫码支付' : '支付宝扫码支付';
+                
+                const res = await fetch('/doctor/feeInfo/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feeId: parseInt(feeId),
+                        payStatus: 1,
+                        payMethod: payMethod,
+                        payTime: new Date().toLocaleString('zh-CN', {hour12:false}).replace(/\//g, '-')
+                    }),
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1) {
+                    $('status-icon').className = 'icon success';
+                    $('status-icon').textContent = '✅';
+                    $('status-title').textContent = '支付成功';
+                    $('status-message').textContent = `金额：¥${amount || '0.00'}\n支付方式：${payMethod}`;
+                } else {
+                    $('status-icon').className = 'icon error';
+                    $('status-icon').textContent = '❌';
+                    $('status-title').textContent = '支付失败';
+                    $('status-message').textContent = res.msg || '处理失败，请重试';
+                }
+            } catch (e) {
+                $('status-icon').className = 'icon error';
+                $('status-icon').textContent = '❌';
+                $('status-title').textContent = '网络错误';
+                $('status-message').textContent = '无法连接服务器，请检查网络';
+            }
+            
+            $('close-btn').style.display = 'inline-block';
+        };
+
+        handlePayment();
+    </script>
+</body>
+</html>

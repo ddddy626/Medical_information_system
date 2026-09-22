@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.RegisterInfoMapper">
+
+    <resultMap id="registerInfoMap" type="com.dyh.doctor.domain.RegisterInfoEntity">
+        <result column="register_id" property="registerId" />
+        <result column="reg_no" property="regNo" />
+        <result column="reg_time" property="regTime" />
+        <result column="visit_time" property="visitTime" />
+        <result column="reg_status" property="regStatus" />
+        <result column="fee" property="fee" />
+        <result column="patient_id" property="patientId" />
+        <result column="dept_id" property="deptId" />
+        <result column="doctor_id" property="doctorId" />
+        <result column="patient_name" property="patientName" />
+        <result column="gender" property="gender" />
+        <result column="age" property="age" />
+        <result column="phone" property="phone" />
+        <result column="dept_name" property="deptName" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            register_info.register_id, register_info.reg_no, register_info.reg_time, register_info.visit_time, register_info.reg_status, register_info.fee, register_info.patient_id, register_info.dept_id, register_info.doctor_id,
+            p.patient_name, p.gender, p.phone, p.age,
+            d.dept_name
+        FROM register_info
+        LEFT JOIN patient_info p ON register_info.patient_id = p.user_id
+        LEFT JOIN dept_info d ON register_info.dept_id = d.dept_id
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="condition">
+        <if test="registerInfo.registerId != null">
+             and register_info.register_id = #{registerInfo.registerId}
+        </if>
+        <if test="registerInfo.regNo != null and registerInfo.regNo != ''">
+             and register_info.reg_no LIKE concat('%', #{registerInfo.regNo}, '%')
+        </if>
+        <if test="registerInfo.regTime != null and registerInfo.regTime != ''">
+             and register_info.reg_time LIKE concat('%', #{registerInfo.regTime}, '%')
+        </if>
+        <if test="registerInfo.visitTime != null and registerInfo.visitTime != ''">
+             and register_info.visit_time LIKE concat('%', #{registerInfo.visitTime}, '%')
+        </if>
+        <if test="registerInfo.regStatus != null">
+             and register_info.reg_status = #{registerInfo.regStatus}
+        </if>
+        <if test="registerInfo.fee != null">
+             and register_info.fee = #{registerInfo.fee}
+        </if>
+        <if test="registerInfo.patientId != null">
+             and register_info.patient_id = #{registerInfo.patientId}
+        </if>
+        <if test="registerInfo.deptId != null">
+             and register_info.dept_id = #{registerInfo.deptId}
+        </if>
+        <if test="registerInfo.doctorId != null">
+             and register_info.doctor_id = #{registerInfo.doctorId}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="registerInfoMap">
+        <include refid="baseSql"></include>
+        AND register_info.register_id = #{registerId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="registerInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by register_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="registerId">
+        insert into register_info(reg_no, reg_time, visit_time, reg_status, fee, patient_id, dept_id, doctor_id)
+        values(#{regNo},
+            COALESCE(#{regTime}, NOW()),
+            COALESCE(#{visitTime}, NULL),
+        #{regStatus}, #{fee}, #{patientId}, #{deptId}, #{doctorId})
+    </insert>
+
+    <update id="update">
+        update register_info
+        <set>
+            <if test="regNo != null and regNo != ''">
+                reg_no = #{regNo},
+            </if>
+            <if test="regTime != null and regTime != ''">
+                reg_time = #{regTime},
+            </if>
+            <if test="visitTime != null and visitTime != ''">
+                visit_time = #{visitTime},
+            </if>
+            <if test="regStatus != null">
+                reg_status = #{regStatus},
+            </if>
+            <if test="fee != null">
+                fee = #{fee},
+            </if>
+            <if test="patientId != null">
+                patient_id = #{patientId},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId},
+            </if>
+            <if test="doctorId != null">
+                doctor_id = #{doctorId},
+            </if>
+        </set>
+        WHERE register_id = #{registerId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM register_info WHERE register_id = #{registerId}
+    </delete>
+</mapper>
+

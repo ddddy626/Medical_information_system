@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线咨询 - 智慧医疗系统</title>
+    <style>
+        :root {
+            --primary-color: #5ef3ff;
+            --success-color: #54f0aa;
+            --warning-color: #ffd166;
+            --send-bg: linear-gradient(135deg, #2a9fd6, #5ef3ff);
+        }
+        * { box-sizing: border-box; }
+        body.med-tech-page::before { z-index: 0; }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 头部 */
+        .chat-header {
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            background: linear-gradient(180deg, rgba(12, 33, 54, 0.92), rgba(9, 24, 39, 0.82));
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+        }
+        .chat-title { display: flex; align-items: center; gap: 12px; }
+        .chat-title h1 { margin: 0; font-size: 18px; color: #ffffff; letter-spacing: 0.02em; }
+        .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #54f0aa;
+            box-shadow: 0 0 12px rgba(84, 240, 170, 0.8);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .header-btns { display: flex; gap: 10px; }
+        .back-btn {
+            padding: 8px 16px;
+            background: rgba(94, 243, 255, 0.1);
+            color: #eafcff;
+            border: 1px solid rgba(94, 243, 255, 0.32);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .back-btn:hover { background: rgba(94, 243, 255, 0.18); }
+
+        /* 消息区 */
+        .chat-messages {
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            background: linear-gradient(180deg, rgba(12, 33, 54, 0.88), rgba(9, 24, 39, 0.78));
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 20px;
+            height: 480px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+        }
+        .system-msg {
+            text-align: center;
+            padding: 6px 16px;
+            margin-bottom: 12px;
+        }
+        .system-msg span {
+            background: rgba(94, 243, 255, 0.08);
+            color: #9eb9c9;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid rgba(142, 236, 255, 0.15);
+        }
+        .time-divider {
+            text-align: center;
+            margin: 14px 0 10px;
+        }
+        .time-divider span {
+            font-size: 12px;
+            color: #7a96a8;
+            background: rgba(94, 243, 255, 0.06);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .msg { display: flex; margin-bottom: 14px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg.left { justify-content: flex-start; }
+        .msg.right { justify-content: flex-end; }
+
+        .msg-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+        }
+        .msg.left .msg-bubble {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(142, 236, 255, 0.2);
+            border-bottom-left-radius: 4px;
+            color: #eafcff;
+        }
+        .msg.right .msg-bubble {
+            background: linear-gradient(135deg, rgba(42, 159, 214, 0.95), rgba(94, 243, 255, 0.85));
+            color: #06111f;
+            border-bottom-right-radius: 4px;
+        }
+        .msg-bubble p { margin: 0; font-size: 14px; line-height: 1.6; word-break: break-word; }
+        .msg-time {
+            font-size: 11px;
+            margin-top: 6px;
+            color: #7a96a8;
+            text-align: right;
+        }
+        .msg.right .msg-time { color: rgba(6, 17, 31, 0.65); }
+
+        /* AI消息 */
+        .msg.ai .msg-bubble {
+            background: linear-gradient(135deg, rgba(94, 243, 255, 0.18), rgba(84, 240, 170, 0.14));
+            border-color: rgba(94, 243, 255, 0.42);
+        }
+        .msg.ai .msg-bubble p { color: #b8f7ff; }
+
+        /* 医生消息 */
+        .msg.doctor .msg-bubble {
+            background: linear-gradient(135deg, rgba(84, 240, 170, 0.2), rgba(84, 240, 170, 0.1));
+            border-color: rgba(84, 240, 170, 0.42);
+        }
+        .msg.doctor .msg-bubble p { color: #c8ffe8; }
+
+        /* 输入区 */
+        .chat-input {
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            background: linear-gradient(180deg, rgba(12, 33, 54, 0.92), rgba(9, 24, 39, 0.82));
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+            display: flex;
+            gap: 12px;
+        }
+        .chat-input textarea {
+            flex: 1;
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            min-height: 48px;
+            max-height: 100px;
+            font-family: inherit;
+            background: rgba(6, 17, 31, 0.55);
+            color: #eafcff;
+        }
+        .chat-input textarea::placeholder { color: #7a96a8; }
+        .chat-input textarea:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(94, 243, 255, 0.12); }
+        .send-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2a9fd6, #5ef3ff);
+            color: #06111f;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            align-self: flex-end;
+        }
+        .send-btn:hover { opacity: 0.9; }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .transfer-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #e6a832, #ffd166);
+            color: #06111f;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            align-self: flex-end;
+            white-space: nowrap;
+        }
+        .transfer-btn:hover { box-shadow: 0 4px 18px rgba(255, 209, 102, 0.35); }
+        .transfer-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .voice-btn {
+            padding: 12px 16px;
+            background: rgba(94, 243, 255, 0.12);
+            color: #b8f7ff;
+            border: 1px solid rgba(94, 243, 255, 0.35);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            align-self: flex-end;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #e85d5d, #ff8a8a);
+            color: #fff;
+            border-color: transparent;
+        }
+        .exit-chat-btn {
+            padding: 8px 16px;
+            background: #f56c6c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .exit-chat-btn:hover { background: #e45656; }
+
+        /* 弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: linear-gradient(180deg, rgba(12, 33, 54, 0.98), rgba(9, 24, 39, 0.96));
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+            color: #eafcff;
+        }
+        .modal-box-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(142, 236, 255, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-box-header h2 { margin: 0; font-size: 16px; color: #ffffff; }
+        .modal-box-close {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(142, 236, 255, 0.2);
+            background: rgba(94, 243, 255, 0.08);
+            color: #eafcff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .modal-box-body { padding: 20px; overflow-y: auto; max-height: calc(80vh - 140px); }
+        .modal-box-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(142, 236, 255, 0.15);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn-primary {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #e6a832, #ffd166);
+            color: #06111f;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary {
+            padding: 10px 24px;
+            background: rgba(94, 243, 255, 0.08);
+            color: #eafcff;
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .step-label { font-size: 14px; font-weight: 600; color: #ffffff; margin-bottom: 12px; }
+        .dept-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .dept-tag {
+            padding: 8px 16px;
+            background: rgba(94, 243, 255, 0.06);
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #b8dce8;
+            transition: all 0.2s;
+        }
+        .dept-tag:hover { background: rgba(94, 243, 255, 0.14); border-color: var(--primary-color); }
+        .dept-tag.selected { background: linear-gradient(135deg, #2a9fd6, #5ef3ff); color: #06111f; border-color: transparent; }
+        .doctor-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            border: 1px solid rgba(142, 236, 255, 0.22);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(6, 17, 31, 0.35);
+        }
+        .doctor-card:hover { border-color: var(--primary-color); background: rgba(94, 243, 255, 0.08); }
+        .doctor-card.selected { border-color: var(--primary-color); background: rgba(94, 243, 255, 0.14); }
+        .doctor-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5ef3ff, #54f0aa);
+            color: #06111f;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .doctor-info { flex: 1; }
+        .doctor-info .doctor-name { font-size: 15px; font-weight: 600; color: #ffffff; margin: 0 0 4px; }
+        .doctor-info .doctor-title { font-size: 12px; color: #9eb9c9; margin: 0 0 4px; }
+        .doctor-info .doctor-specialty { font-size: 13px; color: #b8dce8; margin: 0; }
+        .doctor-empty { text-align: center; padding: 30px; color: #7a96a8; font-size: 14px; }
+
+        @media (max-width: 640px) {
+            .container { padding: 10px; }
+            .chat-messages { height: 380px; }
+            .msg-bubble { max-width: 85%; }
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="chat-header">
+            <div class="chat-title">
+                <span class="status-dot" id="status-dot"></span>
+                <h1 class="nav-active">智能健康助手</h1>
+            </div>
+            <div class="header-btns">
+                <button class="exit-chat-btn" id="exit-chat-btn" style="display:none;">退出聊天</button>
+                <button class="back-btn" id="back-btn">返回</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="system-msg"><span id="system-time"></span></div>
+        </div>
+
+        <div class="chat-input" id="chat-input-area">
+            <textarea id="message-input" placeholder="请输入您的问题..."></textarea>
+            <button type="button" class="voice-btn" id="voice-btn" title="长按说话">按住说话</button>
+            <button class="transfer-btn" id="transfer-btn">转人工</button>
+            <button class="send-btn" id="send-btn">发送</button>
+        </div>
+    </div>
+
+    <!-- 转人工弹窗 -->
+    <div class="modal-overlay" id="transfer-modal">
+        <div class="modal-box">
+            <div class="modal-box-header">
+                <h2>转人工咨询 - 选择科室和医生</h2>
+                <button class="modal-box-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-box-body">
+                <div class="step-label">1. 选择科室</div>
+                <div class="dept-grid" id="dept-grid"><span class="doctor-empty">加载中...</span></div>
+                <div class="step-label">2. 选择医生</div>
+                <div id="doctor-list"><div class="doctor-empty">请先选择科室</div></div>
+            </div>
+            <div class="modal-box-footer">
+                <button class="btn-secondary" id="modal-cancel">取消</button>
+                <button class="btn-primary" id="modal-confirm" disabled>确认转接</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/voice-input.js?v=20260902wav"></script>
+    <script>
+        const $ = id => document.getElementById(id);
+        const params = new URLSearchParams(location.search);
+        const isValidId = (v) => !!(v && v !== 'null' && v !== 'undefined');
+        const urlUserId = params.get('userId');
+        const urlUserName = params.get('userName');
+        // URL 带身份 = 已登录患者入口；无 URL = 游客从首页进入（不依赖残留 session 决定返回去向）
+        let userId = isValidId(urlUserId) ? urlUserId : null;
+        let userName = isValidId(urlUserName) ? urlUserName : null;
+        if (isValidId(urlUserId)) {
+            if (!userName) userName = sessionStorage.getItem('patientUserName');
+        } else {
+            // 兼容少数未带参的患者入口：可读 session，但返回仍回首页（见 back-btn）
+            const sid = sessionStorage.getItem('patientUserId');
+            const sname = sessionStorage.getItem('patientUserName');
+            if (isValidId(sid)) {
+                userId = sid;
+                if (!userName) userName = sname;
+            }
+        }
+
+        // ========== 状态 ==========
+        let chatHistory = [];          // AI对话历史
+        let mode = 'ai';               // 'ai' 或 'chat'
+        let selectedDoctorId = null;
+        let selectedDoctorName = '';
+        let selectedDeptId = null;
+        let allDepts = [];
+        let pollingTimer = null;
+        let lastMsgId = 0;
+        let renderedMsgIds = new Set();
+        let lastBubbleTime = null;
+
+        // ========== 初始化 ==========
+        const now = new Date();
+        $('system-time').textContent = '对话开始于 ' + now.toLocaleString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+
+        $('back-btn').onclick = () => {
+            // 游客从首页进智能导诊：返回首页，禁止跳进患者端造成“自动登录”
+            if (!isValidId(urlUserId)) {
+                location.href = 'index.html';
+                return;
+            }
+            location.href = 'patient-dashboard.html?userId=' + encodeURIComponent(urlUserId) + '&userName=' + encodeURIComponent(userName || '');
+        };
+
+        $('exit-chat-btn').onclick = () => exitDoctorChat();
+
+        // ========== 消息渲染 ==========
+        const escapeHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+        const parseMsgTime = (timeStr) => {
+            if (!timeStr) return new Date();
+            const d = new Date(String(timeStr).replace(/-/g, '/'));
+            return isNaN(d.getTime()) ? new Date() : d;
+        };
+
+        const formatMsgTime = (timeStr) => {
+            const d = parseMsgTime(timeStr);
+            const now = new Date();
+            const hm = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            if (d.toDateString() === now.toDateString()) return hm;
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            if (d.toDateString() === yesterday.toDateString()) return '昨天 ' + hm;
+            return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' + hm;
+        };
+
+        const formatDividerTime = (timeStr) => {
+            const d = parseMsgTime(timeStr);
+            const now = new Date();
+            const hm = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            if (d.toDateString() === now.toDateString()) return hm;
+            return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + hm;
+        };
+
+        const maybeAddTimeDivider = (timeStr) => {
+            const d = parseMsgTime(timeStr);
+            if (!lastBubbleTime || (d.getTime() - lastBubbleTime.getTime()) > 5 * 60 * 1000) {
+                const wrap = $('chat-messages');
+                const div = document.createElement('div');
+                div.className = 'time-divider';
+                div.innerHTML = '<span>' + formatDividerTime(timeStr) + '</span>';
+                wrap.appendChild(div);
+            }
+            lastBubbleTime = d;
+        };
+
+        const addMsg = (content, side, extraClass, timeStr, renderKey) => {
+            if (renderKey != null && renderedMsgIds.has(renderKey)) return;
+            if (renderKey != null) renderedMsgIds.add(renderKey);
+
+            const ts = timeStr || new Date().toLocaleString('zh-CN', { hour12: false });
+            maybeAddTimeDivider(ts);
+
+            const wrap = $('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'msg ' + side + (extraClass ? ' ' + extraClass : '');
+            if (renderKey != null) div.dataset.msgKey = String(renderKey);
+            div.innerHTML = '<div class="msg-bubble"><p>' + escapeHtml(content) + '</p><div class="msg-time">' + formatMsgTime(ts) + '</div></div>';
+            wrap.appendChild(div);
+            wrap.scrollTop = wrap.scrollHeight;
+        };
+
+        const addSystemMsg = (text) => {
+            const wrap = $('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'system-msg';
+            div.innerHTML = '<span>' + escapeHtml(text) + '</span>';
+            wrap.appendChild(div);
+            wrap.scrollTop = wrap.scrollHeight;
+        };
+
+        const resetChatRenderState = () => {
+            renderedMsgIds = new Set();
+            lastMsgId = 0;
+            lastBubbleTime = null;
+        };
+
+        const buildTimelineFromRecords = (records) => {
+            const items = [];
+            (records || []).forEach(m => {
+                if (m.consultType === 0) {
+                    if (m.content && m.content.trim()) {
+                        items.push({
+                            key: 'ai-u-' + m.consultId,
+                            content: m.content,
+                            side: 'right',
+                            extraClass: '',
+                            time: m.consultTime,
+                            consultId: m.consultId
+                        });
+                    }
+                    if (m.reply && m.reply.trim()) {
+                        items.push({
+                            key: 'ai-r-' + m.consultId,
+                            content: m.reply,
+                            side: 'left',
+                            extraClass: 'ai',
+                            time: m.replyTime || m.consultTime,
+                            consultId: m.consultId
+                        });
+                    }
+                } else if (m.consultType === 1) {
+                    if (!m.content || !m.content.trim() || m.content.startsWith('【AI咨询对话记录】')) return;
+                    if (m.senderRole !== 0 && m.senderRole !== 1) return;
+                    items.push({
+                        key: 'm-' + m.consultId,
+                        content: m.content,
+                        side: m.senderRole === 0 ? 'right' : 'left',
+                        extraClass: m.senderRole === 1 ? 'doctor' : '',
+                        time: m.consultTime || m.replyTime,
+                        consultId: m.consultId
+                    });
+                }
+            });
+            items.sort((a, b) => {
+                const ta = parseMsgTime(a.time).getTime();
+                const tb = parseMsgTime(b.time).getTime();
+                if (ta !== tb) return ta - tb;
+                if ((a.consultId || 0) !== (b.consultId || 0)) return (a.consultId || 0) - (b.consultId || 0);
+                if (String(a.key).includes('ai-u') && String(b.key).includes('ai-r')) return -1;
+                if (String(a.key).includes('ai-r') && String(b.key).includes('ai-u')) return 1;
+                return String(a.key).localeCompare(String(b.key));
+            });
+            return items;
+        };
+
+        const appendTimelineItems = (records) => {
+            const timeline = buildTimelineFromRecords(records);
+            timeline.forEach(item => {
+                if (renderedMsgIds.has(item.key)) return;
+                addMsg(item.content, item.side, item.extraClass, item.time, item.key);
+                if (item.consultId) lastMsgId = Math.max(lastMsgId, item.consultId);
+            });
+        };
+
+        const fetchAllChatRecords = async () => {
+            const list = [];
+            try {
+                const chatRes = await fetch('/doctor/consultInfo/queryChatMessages?patientId=' + userId + '&doctorId=' + selectedDoctorId, {
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (chatRes.code === 1 && chatRes.content) list.push(...chatRes.content);
+            } catch (e) { console.error(e); }
+            try {
+                const aiRes = await fetch('/doctor/consultInfo/queryByPage?patientId=' + userId + '&consultType=0&page=1&size=200', {
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (aiRes.code === 1 && aiRes.content && aiRes.content.content) list.push(...aiRes.content.content);
+            } catch (e) { console.error(e); }
+            return list;
+        };
+
+        // ========== AI 模式 ==========
+        const sendToAI = async () => {
+            const input = $('message-input');
+            const text = input.value.trim();
+            if (!text || mode !== 'ai') return;
+
+            input.value = '';
+            addMsg(text, 'right');
+            chatHistory.push({ role: 'user', content: text });
+            $('send-btn').disabled = true;
+            $('transfer-btn').disabled = true;
+
+            try {
+                const res = await fetch('/doctor/ai/suggest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: text }),
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1 && res.content && res.content.suggestion) {
+                    addMsg(res.content.suggestion, 'left', 'ai');
+                    chatHistory.push({ role: 'ai', content: res.content.suggestion });
+                    // 存入咨询表
+                    const nowStr = new Date().toLocaleString('zh-CN', { hour12: false });
+                    await fetch('/doctor/consultInfo/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            content: text,
+                            reply: res.content.suggestion,
+                            consultStatus: 1,
+                            patientId: parseInt(userId),
+                            consultType: 0,
+                            senderRole: 0,
+                            consultTime: nowStr,
+                            replyTime: nowStr
+                        }),
+                        credentials: 'include'
+                    });
+                } else {
+                    addMsg('抱歉，暂时无法回答，请稍后重试。', 'left', 'ai');
+                }
+            } catch (e) {
+                addMsg('网络错误，请稍后重试。', 'left', 'ai');
+            }
+
+            $('send-btn').disabled = false;
+            $('transfer-btn').disabled = false;
+        };
+
+        // ========== 转人工弹窗 ==========
+        $('transfer-btn').onclick = () => {
+            if (mode !== 'ai') return;
+            selectedDeptId = null;
+            selectedDoctorId = null;
+            $('modal-confirm').disabled = true;
+            $('doctor-list').innerHTML = '<div class="doctor-empty">请先选择科室</div>';
+            $('transfer-modal').classList.add('show');
+            loadDepts();
+        };
+
+        $('modal-close').onclick = () => $('transfer-modal').classList.remove('show');
+        $('modal-cancel').onclick = () => $('transfer-modal').classList.remove('show');
+        $('transfer-modal').onclick = e => { if (e.target === $('transfer-modal')) $('transfer-modal').classList.remove('show'); };
+
+        const loadDepts = async () => {
+            try {
+                const res = await fetch('/doctor/deptInfo/queryByPage?page=1&size=100', { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content) {
+                    allDepts = res.content.content;
+                    renderDepts();
+                } else {
+                    $('dept-grid').innerHTML = '<span class="doctor-empty">暂无科室</span>';
+                }
+            } catch (e) {
+                $('dept-grid').innerHTML = '<span class="doctor-empty">加载失败</span>';
+            }
+        };
+
+        const renderDepts = () => {
+            $('dept-grid').innerHTML = allDepts.map(d =>
+                '<div class="dept-tag' + (selectedDeptId === d.deptId ? ' selected' : '') + '" data-id="' + d.deptId + '">' + d.deptName + '</div>'
+            ).join('');
+            document.querySelectorAll('.dept-tag').forEach(tag => {
+                tag.onclick = () => {
+                    selectedDeptId = parseInt(tag.dataset.id);
+                    selectedDoctorId = null;
+                    $('modal-confirm').disabled = true;
+                    renderDepts();
+                    loadDoctors(selectedDeptId);
+                };
+            });
+        };
+
+        const loadDoctors = async (deptId) => {
+            $('doctor-list').innerHTML = '<div class="doctor-empty">加载中...</div>';
+            try {
+                const res = await fetch('/doctor/doctorInfo/queryByPage?deptId=' + deptId + '&page=1&size=50', { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    $('doctor-list').innerHTML = res.content.content.map(doc => {
+                        const init = (doc.doctorName || '医').charAt(0);
+                        return '<div class="doctor-card" data-id="' + doc.doctorId + '" data-name="' + (doc.doctorName || '') + '">' +
+                            '<div class="doctor-avatar">' + init + '</div>' +
+                            '<div class="doctor-info">' +
+                                '<p class="doctor-name">' + (doc.doctorName || '未知') + '</p>' +
+                                '<p class="doctor-title">' + (doc.title || '') + '</p>' +
+                                '<p class="doctor-specialty">擅长：' + (doc.specialty || '') + '</p>' +
+                            '</div></div>';
+                    }).join('');
+
+                    document.querySelectorAll('.doctor-card').forEach(card => {
+                        card.onclick = () => {
+                            selectedDoctorId = parseInt(card.dataset.id);
+                            selectedDoctorName = card.dataset.name;
+                            $('modal-confirm').disabled = false;
+                            document.querySelectorAll('.doctor-card').forEach(c => c.classList.remove('selected'));
+                            card.classList.add('selected');
+                        };
+                    });
+                } else {
+                    $('doctor-list').innerHTML = '<div class="doctor-empty">该科室暂无医生</div>';
+                }
+            } catch (e) {
+                $('doctor-list').innerHTML = '<div class="doctor-empty">加载失败</div>';
+            }
+        };
+
+        $('modal-confirm').onclick = async () => {
+            if (!selectedDoctorId) return;
+            $('transfer-modal').classList.remove('show');
+            await enterDoctorChat();
+        };
+
+        // ========== 进入医生聊天模式 ==========
+        const enterDoctorChat = async (resume) => {
+            mode = 'chat';
+            $('chat-title-text').textContent = '与 ' + selectedDoctorName + ' 医生对话中';
+            $('status-dot').style.background = '#f59e0b';
+            $('transfer-btn').style.display = 'none';
+            $('exit-chat-btn').style.display = '';
+            $('message-input').placeholder = '请输入消息发送给医生...';
+
+            resetChatRenderState();
+            $('chat-messages').innerHTML = '';
+            addSystemMsg('已转接 ' + selectedDoctorName + ' 医生');
+
+            if (!resume) {
+                const historyText = buildChatHistoryText();
+                await fetch('/doctor/consultInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: historyText || '患者请求人工咨询',
+                        reply: '',
+                        consultStatus: 0,
+                        patientId: parseInt(userId),
+                        doctorId: selectedDoctorId,
+                        consultType: 1,
+                        senderRole: 0,
+                        consultTime: new Date().toLocaleString('zh-CN', { hour12: false })
+                    }),
+                    credentials: 'include'
+                });
+
+                addMsg('已为您转接 ' + selectedDoctorName + ' 医生，可以开始对话了。', 'left', 'ai', new Date().toLocaleString('zh-CN', { hour12: false }), null);
+            }
+
+            await syncChatMessages();
+            startPolling();
+        };
+
+        const buildChatHistoryText = () => {
+            if (chatHistory.length === 0) return '';
+            let t = '【AI咨询对话记录】\n';
+            chatHistory.forEach(item => {
+                t += (item.role === 'user' ? '患者' : 'AI助手') + '：' + item.content + '\n';
+            });
+            t += '【以上为AI咨询内容，请医生参考并回复患者】';
+            return t;
+        };
+
+        // ========== 医生聊天模式：发送消息 ==========
+        const sendToDoctor = async () => {
+            const input = $('message-input');
+            const text = input.value.trim();
+            if (!text || mode !== 'chat') return;
+
+            input.value = '';
+            $('send-btn').disabled = true;
+
+            try {
+                await fetch('/doctor/consultInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: text,
+                        reply: '',
+                        consultStatus: 0,
+                        patientId: parseInt(userId),
+                        doctorId: selectedDoctorId,
+                        consultType: 1,
+                        senderRole: 0,
+                        consultTime: new Date().toLocaleString('zh-CN', { hour12: false })
+                    }),
+                    credentials: 'include'
+                });
+                await syncChatMessages();
+            } catch (e) {
+                addSystemMsg('发送失败，请检查网络后重试');
+            }
+
+            $('send-btn').disabled = false;
+        };
+
+        // ========== 同步聊天记录（按 consultId 去重，仅追加新消息） ==========
+        const syncChatMessages = async () => {
+            if (!selectedDoctorId || mode !== 'chat') return;
+            try {
+                const all = await fetchAllChatRecords();
+                appendTimelineItems(all);
+            } catch (e) {
+                console.error('同步消息失败', e);
+            }
+        };
+
+        const startPolling = () => {
+            if (pollingTimer) clearInterval(pollingTimer);
+            pollingTimer = setInterval(syncChatMessages, 3000);
+        };
+
+        // ========== 退出医生聊天 ==========
+        const exitDoctorChat = async () => {
+            const closingDoctorId = selectedDoctorId;
+            mode = 'ai';
+            if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+            selectedDoctorId = null;
+            selectedDoctorName = '';
+            resetChatRenderState();
+
+            $('chat-title-text').textContent = '智能健康助手';
+            $('status-dot').style.background = '#10b981';
+            $('transfer-btn').style.display = '';
+            $('exit-chat-btn').style.display = 'none';
+            $('message-input').placeholder = '请输入您的问题...';
+
+            // 清空并恢复AI欢迎
+            $('chat-messages').innerHTML = '';
+            addSystemMsg('已退出医生对话，继续AI咨询');
+            addMsg('您好！我是您的智能健康助手。请描述您的症状或健康问题，我会为您提供专业建议。', 'left', 'ai');
+            chatHistory = [];
+
+            // 关闭服务端进行中的人工会话，避免下次进入自动回到医生聊天
+            if (userId && closingDoctorId) {
+                try {
+                    await fetch('/doctor/consultInfo/closeChat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            patientId: parseInt(userId, 10),
+                            doctorId: parseInt(closingDoctorId, 10)
+                        })
+                    });
+                } catch (e) {
+                    console.warn('关闭医生会话失败', e);
+                }
+            }
+        };
+
+        // ========== 发送按钮逻辑 ==========
+        $('send-btn').onclick = () => {
+            if (mode === 'ai') sendToAI();
+            else sendToDoctor();
+        };
+
+        $('message-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (mode === 'ai') sendToAI();
+                else sendToDoctor();
+            }
+        });
+
+        // ========== 加载历史 ==========
+        const loadHistory = async () => {
+            if (!userId) return;
+            try {
+                const res = await fetch('/doctor/consultInfo/queryByPatientId?patientId=' + userId, {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1 && res.content) {
+                    // 仅当仍存在进行中的人工会话时才恢复医生聊天；已结束则保持 AI
+                    const openRows = res.content.filter(c =>
+                        c.consultType === 1 && c.doctorId && (c.consultStatus === 0 || c.consultStatus === '0')
+                    );
+                    if (openRows.length === 0) return;
+
+                    const latest = openRows.sort((a, b) => (b.consultId || 0) - (a.consultId || 0))[0];
+
+                    selectedDoctorId = latest.doctorId;
+                    try {
+                        const docRes = await fetch('/doctor/doctorInfo/queryById/' + selectedDoctorId, { credentials: 'include' }).then(r => r.json());
+                        selectedDoctorName = (docRes.code === 1 && docRes.content && docRes.content.doctorName) ? docRes.content.doctorName : ('医生#' + selectedDoctorId);
+                    } catch (e) {
+                        selectedDoctorName = '医生#' + selectedDoctorId;
+                    }
+
+                    $('chat-messages').innerHTML = '';
+                    resetChatRenderState();
+                    await enterDoctorChat(true);
+                }
+            } catch (e) {
+                console.error('加载历史失败', e);
+            }
+        };
+
+        // 语音输入
+        if (window.VoiceInput) {
+            VoiceInput.bind({ button: '#voice-btn', input: '#message-input', label: '按住说话' });
+        }
+
+        // 初始欢迎消息（仅 AI 模式）
+        (async () => {
+            await loadHistory();
+            if (mode === 'ai') {
+                addMsg('您好！我是您的智能健康助手。请描述您的症状或健康问题，我会为您提供专业建议。', 'left', 'ai', new Date().toLocaleString('zh-CN', { hour12: false }), null);
+            }
+        })();
+    </script>
+</body>
+</html>

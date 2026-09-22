@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>病历管理 - 医生端</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header .actions { display: flex; gap: 15px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: #fff;
+        }
+        .btn-success:hover { box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4); }
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #333;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: #fff;
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        .sidebar {
+            width: 350px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+        .search-box {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+        }
+        .search-box input::placeholder { color: #888; }
+        .record-list { padding: 10px; }
+        .record-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .record-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #00d4ff;
+        }
+        .record-item.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-left-color: #00d4ff;
+        }
+        .record-item .patient-name { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
+        .record-item .record-date { font-size: 12px; color: #aaa; margin-bottom: 5px; }
+        .record-item .record-summary {
+            font-size: 13px;
+            color: #ccc;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .form-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .form-group { flex: 1; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 50%;
+            color: #666;
+        }
+        .detail-field {
+            margin-bottom: 14px;
+        }
+        .detail-field .label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        .detail-field .value {
+            font-size: 14px;
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .detail-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        .detail-row .detail-field { flex: 1; }
+
+        /* 处方药品表格 */
+        .med-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .med-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #aaa;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .med-table td {
+            padding: 10px 12px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .med-total {
+            text-align: right;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffc107;
+            margin-top: 10px;
+        }
+
+        /* 订单状态 */
+        .order-status {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .order-status.pending {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+        }
+        .order-status.paid {
+            background: rgba(40, 167, 69, 0.15);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: #28a745;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        .tag-pending { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .tag-completed { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="header">
+        <h1 class="nav-active">病历管理</h1>
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="goBack()">返回工作台</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索患者姓名或诊断..." onkeyup="filterRecords()">
+            </div>
+            <div class="record-list" id="recordList"></div>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            <div class="empty-state">
+                <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+                <p>选择一份病历查看详情</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/record-image.js?v=20260902ocr"></script>
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        const rawId = new URLSearchParams(window.location.search).get('userId');
+        const rawName = new URLSearchParams(window.location.search).get('userName');
+        const userId = (!rawId || rawId === 'null' || rawId === 'undefined') ? null : rawId;
+        const userName = (!rawName || rawName === 'null' || rawName === 'undefined') ? null : rawName;
+
+        let myDoctorId = null;
+        let records = [];
+        let currentRecord = null;
+
+        // 先获取 doctorId
+        async function initDoctorId() {
+            if (!userId) return;
+            try {
+                const res = await fetch('/doctor/doctorInfo/queryByPage?userId=' + userId + '&page=1&size=1', { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    myDoctorId = res.content.content[0].doctorId;
+                }
+            } catch (e) { console.error('获取doctorId失败', e); }
+        }
+
+        async function loadRecords() {
+            try {
+                const url = '/doctor/recordInfo/queryByPage?doctorId=' + (myDoctorId || '') + '&page=1&size=100';
+                const result = await fetch(url, { credentials: 'include' }).then(r => r.json());
+                if (result.code === 1 && result.content && result.content.content) {
+                    records = result.content.content;
+                } else {
+                    records = [];
+                }
+            } catch (e) {
+                console.error('加载病历失败:', e);
+                records = [];
+            }
+            renderRecordList();
+        }
+
+        function renderRecordList() {
+            const container = $('recordList');
+            const search = ($('searchInput').value || '').toLowerCase();
+            const filtered = records.filter(r =>
+                (r.patientName || '').toLowerCase().includes(search) ||
+                (r.chiefComplaint || '').toLowerCase().includes(search) ||
+                (r.diagnosis || '').toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center;padding:20px;color:#666;">暂无病历记录</p>';
+                return;
+            }
+            container.innerHTML = filtered.map((r, i) => `
+                <div class="record-item ${currentRecord && currentRecord.recordId === r.recordId ? 'active' : ''}" onclick="selectRecord(${r.recordId})">
+                    <div class="patient-name">${r.patientName || '患者ID:' + (r.patientId || '-')}</div>
+                    <div class="record-date">${r.recordTime || '-'}</div>
+                    <div class="record-summary">${r.diagnosis || r.chiefComplaint || '暂无'}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterRecords() { renderRecordList(); }
+
+        async function selectRecord(recordId) {
+            currentRecord = records.find(r => r.recordId === recordId);
+            if (!currentRecord) return;
+            renderRecordList();
+            await showRecordDetail();
+        }
+
+        async function showRecordDetail() {
+            const r = currentRecord;
+            const content = $('mainContent');
+
+            // 加载处方药品
+            let meds = [];
+            try {
+                const medRes = await fetch('/doctor/presDetailInfo/queryByPage?recordId=' + r.recordId + '&page=1&size=100', { credentials: 'include' }).then(res => res.json());
+                if (medRes.code === 1 && medRes.content && medRes.content.content) {
+                    meds = medRes.content.content;
+                }
+            } catch (e) { console.error('加载处方明细失败', e); }
+
+            // 加载检查项目
+            let checks = [];
+            try {
+                const checkRes = await fetch('/doctor/checkInfo/queryByPage?recordId=' + r.recordId + '&page=1&size=100', { credentials: 'include' }).then(res => res.json());
+                if (checkRes.code === 1 && checkRes.content && checkRes.content.content) {
+                    checks = checkRes.content.content;
+                }
+            } catch (e) { console.error('加载检查项目失败', e); }
+
+            // 加载关联的缴费订单
+            let feeOrders = [];
+            try {
+                const feeRes = await fetch('/doctor/feeInfo/queryByPage?recordId=' + r.recordId + '&page=1&size=10', { credentials: 'include' }).then(res => res.json());
+                if (feeRes.code === 1 && feeRes.content && feeRes.content.content) {
+                    feeOrders = feeRes.content.content;
+                }
+            } catch (e) { console.error('加载缴费订单失败', e); }
+
+            const totalMed = meds.reduce((sum, m) => sum + (m.price || 0) * (m.quantity || 0), 0);
+            const totalCheck = checks.reduce((sum, c) => sum + (c.checkFee || 0), 0);
+            const grandTotal = totalMed + totalCheck;
+            const hasFee = feeOrders.length > 0;
+            const paidFee = feeOrders.find(f => f.payStatus === 1);
+            const unpaidFee = feeOrders.find(f => f.payStatus === 0);
+
+            let medsHtml = '';
+            if (meds.length > 0) {
+                medsHtml = `
+                    <div class="form-section">
+                        <h3>处方药品</h3>
+                        <table class="med-table">
+                            <thead>
+                                <tr>
+                                    <th>药品名称</th>
+                                    <th>类型</th>
+                                    <th>规格</th>
+                                    <th>单价</th>
+                                    <th>数量</th>
+                                    <th>小计</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${meds.map(m => `
+                                    <tr>
+                                        <td>${m.medName || '-'}</td>
+                                        <td>${m.medType || '-'}</td>
+                                        <td>${m.spec || '-'}</td>
+                                        <td style="color:#ffc107;">¥${(m.price || 0).toFixed(2)}</td>
+                                        <td>${m.quantity || 0}</td>
+                                        <td style="color:#ffc107;">¥${((m.price || 0) * (m.quantity || 0)).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div class="med-total">药品总计：¥${totalMed.toFixed(2)}</div>
+                    </div>
+                `;
+            }
+
+            let checksHtml = '';
+            if (checks.length > 0) {
+                checksHtml = `
+                    <div class="form-section">
+                        <h3>检查项目</h3>
+                        <table class="med-table">
+                            <thead>
+                                <tr>
+                                    <th>检查名称</th>
+                                    <th>费用</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${checks.map(c => `
+                                    <tr>
+                                        <td>${c.checkName || '-'}</td>
+                                        <td style="color:#ffc107;">¥${(c.checkFee || 0).toFixed(2)}</td>
+                                        <td>${c.checkStatus === 1 ? '<span style="color:#1b8f46;">已完成</span>' : '<span style="color:#f59e0b;">待检查</span>'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div class="med-total">检查费总计：¥${totalCheck.toFixed(2)}</div>
+                    </div>
+                `;
+            }
+
+            let totalHtml = '';
+            if (meds.length > 0 || checks.length > 0) {
+                totalHtml = `
+                    <div style="text-align:right;font-size:18px;font-weight:700;color:#ff7043;padding:12px 0;border-top:2px dashed #e5e7eb;margin-top:8px;">
+                        合计：¥${grandTotal.toFixed(2)}
+                    </div>
+                `;
+            }
+
+            let orderHtml = '';
+            if (hasFee) {
+                feeOrders.forEach(f => {
+                    const isPaid = f.payStatus === 1;
+                    orderHtml += `
+                        <div class="order-status ${isPaid ? 'paid' : 'pending'}" style="margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <strong>缴费订单 #${f.feeId}</strong><br>
+                                    金额：¥${(f.amount || 0).toFixed(2)} | 类型：${f.feeType || '药品费'}
+                                    ${isPaid ? '<br>支付方式：' + (f.payMethod || '-') + ' | 支付时间：' + (f.payTime || '-') : ''}
+                                </div>
+                                <div>
+                                    <span class="tag ${isPaid ? 'tag-completed' : 'tag-pending'}">${isPaid ? '已支付' : '待支付'}</span>
+                                </div>
+                            </div>
+                            ${!isPaid ? `
+                                <div style="margin-top:10px;">
+                                    <button class="btn btn-warning" onclick="confirmOfflinePay(${f.feeId})">确认线下缴费</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            content.innerHTML = `
+                <div class="form-section">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h3 style="margin-bottom:0;border-bottom:none;padding-bottom:0;">病历详情</h3>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn btn-primary" type="button" id="detail-upload-btn">上传病历图片</button>
+                            <button class="btn btn-secondary" onclick="editRecord()">编辑病历</button>
+                            <button class="btn btn-danger" onclick="deleteRecord()">删除</button>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <div class="label">病历编号</div>
+                            <div class="value">${r.recordNo || '-'}</div>
+                        </div>
+                        <div class="detail-field">
+                            <div class="label">记录时间</div>
+                            <div class="value">${r.recordTime || '-'}</div>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-field">
+                            <div class="label">患者姓名</div>
+                            <div class="value">${r.patientName || '患者ID:' + (r.patientId || '-')}</div>
+                        </div>
+                        <div class="detail-field">
+                            <div class="label">挂号ID</div>
+                            <div class="value">${r.registerId || '-'}</div>
+                        </div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="label">主诉</div>
+                        <div class="value">${r.chiefComplaint || '-'}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="label">诊断</div>
+                        <div class="value">${r.diagnosis || '-'}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="label">治疗方案</div>
+                        <div class="value">${r.treatment || '-'}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="label">随访建议</div>
+                        <div class="value">${r.followUp || '-'}</div>
+                    </div>
+                </div>
+
+                ${medsHtml}
+
+                ${checksHtml}
+
+                ${totalHtml}
+
+                ${hasFee ? `
+                    <div class="form-section">
+                        <h3>缴费订单</h3>
+                        ${orderHtml}
+                    </div>
+                ` : ''}
+
+                <div class="action-bar">
+                    ${(meds.length > 0 || checks.length > 0) && !hasFee ? `
+                        <button class="btn btn-success" onclick="sendOrder()">发送缴费订单（¥${grandTotal.toFixed(2)}）</button>
+                    ` : ''}
+                    ${(meds.length > 0 || checks.length > 0) && unpaidFee ? `
+                        <button class="btn btn-warning" onclick="confirmOfflinePay(${unpaidFee.feeId})">确认线下缴费</button>
+                    ` : ''}
+                </div>
+            `;
+
+            // 详情页快捷识图：识别后进入编辑并把结果填入主诉
+            RecordImage.bindUploadButton({
+                button: '#detail-upload-btn',
+                onResult: (data) => {
+                    const text = (data.imageContext || '').trim();
+                    if (!text) {
+                        alert('未识别到有效内容');
+                        return;
+                    }
+                    if (!currentRecord.chiefComplaint) currentRecord.chiefComplaint = '';
+                    const cur = String(currentRecord.chiefComplaint || '').trim();
+                    currentRecord.chiefComplaint = cur ? (cur + '\n' + text) : text;
+                    editRecord();
+                    const hint = $('edit-upload-hint');
+                    if (hint) hint.textContent = '已填入识图结果，请复核后保存';
+                }
+            });
+        }
+
+        // 发送缴费订单
+        async function sendOrder() {
+            if (!currentRecord) return;
+            let meds = [];
+            let checks = [];
+            try {
+                const medRes = await fetch('/doctor/presDetailInfo/queryByPage?recordId=' + currentRecord.recordId + '&page=1&size=100', { credentials: 'include' }).then(r => r.json());
+                if (medRes.code === 1 && medRes.content && medRes.content.content) {
+                    meds = medRes.content.content;
+                }
+                const checkRes = await fetch('/doctor/checkInfo/queryByPage?recordId=' + currentRecord.recordId + '&page=1&size=100', { credentials: 'include' }).then(r => r.json());
+                if (checkRes.code === 1 && checkRes.content && checkRes.content.content) {
+                    checks = checkRes.content.content;
+                }
+            } catch (e) { alert('获取信息失败'); return; }
+
+            const totalMed = meds.reduce((s, m) => s + (m.price || 0) * (m.quantity || 0), 0);
+            const totalCheck = checks.reduce((s, c) => s + (c.checkFee || 0), 0);
+            const total = totalMed + totalCheck;
+            if (total <= 0) { alert('费用总计为0，无法发送订单'); return; }
+
+            let detail = '';
+            if (totalMed > 0) detail += '药品费：¥' + totalMed.toFixed(2) + '\n';
+            if (totalCheck > 0) detail += '检查费：¥' + totalCheck.toFixed(2) + '\n';
+            if (!confirm('确认发送缴费订单？\n' + detail + '合计：¥' + total.toFixed(2))) return;
+
+            try {
+                const res = await fetch('/doctor/feeInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feeType: totalCheck > 0 ? '药品+检查费' : '药品费',
+                        amount: total,
+                        payStatus: 0,
+                        recordId: currentRecord.recordId,
+                        patientId: currentRecord.patientId,
+                        doctorId: myDoctorId
+                    }),
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1) {
+                    alert('缴费订单已发送');
+                    showRecordDetail();
+                } else {
+                    alert('发送失败: ' + (res.msg || '未知错误'));
+                }
+            } catch (e) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 确认线下缴费
+        async function confirmOfflinePay(feeId) {
+            if (!confirm('确认该患者已线下缴费？')) return;
+            try {
+                const res = await fetch('/doctor/feeInfo/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feeId: feeId,
+                        payStatus: 1,
+                        payMethod: '线下缴费',
+                        payTime: new Date().toLocaleString('zh-CN', {hour12:false}).replace(/\//g, '-')
+                    }),
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1) {
+                    alert('已确认线下缴费');
+                    showRecordDetail();
+                } else {
+                    alert('操作失败: ' + (res.msg || '未知错误'));
+                }
+            } catch (e) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 编辑病历
+        function editRecord() {
+            const r = currentRecord;
+            const content = $('mainContent');
+            content.innerHTML = `
+                <div class="form-section">
+                    <h3>编辑病历</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>病历编号</label>
+                            <input type="text" id="editRecordNo" value="${r.recordNo || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>挂号ID</label>
+                            <input type="text" id="editRegisterId" value="${r.registerId || ''}">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label>上传病历 / 检查报告（识图填入主诉）</label>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-primary" type="button" id="edit-upload-btn">上传病历图片</button>
+                            <span id="edit-upload-hint" style="font-size:12px;color:#aaa;"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>主诉</label>
+                        <textarea id="editChiefComplaint">${r.chiefComplaint || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>诊断</label>
+                        <textarea id="editDiagnosis">${r.diagnosis || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>治疗方案</label>
+                        <textarea id="editTreatment">${r.treatment || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>随访建议</label>
+                        <textarea id="editFollowUp">${r.followUp || ''}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="showRecordDetail()">取消</button>
+                        <button class="btn btn-primary" onclick="updateRecord()">保存修改</button>
+                    </div>
+                </div>
+            `;
+            RecordImage.bindUploadButton({
+                button: '#edit-upload-btn',
+                onResult: (data) => {
+                    const text = (data.imageContext || '').trim();
+                    const hint = $('edit-upload-hint');
+                    if (!text) {
+                        if (hint) hint.textContent = '未识别到有效内容';
+                        return;
+                    }
+                    const complaint = $('editChiefComplaint');
+                    if (complaint) {
+                        const cur = (complaint.value || '').trim();
+                        complaint.value = cur ? (cur + '\n' + text) : text;
+                    }
+                    if (hint) hint.textContent = '已填入识图结果，请医生复核后保存';
+                }
+            });
+        }
+
+        async function updateRecord() {
+            const data = {
+                recordId: currentRecord.recordId,
+                recordNo: $('editRecordNo').value,
+                registerId: $('editRegisterId').value || null,
+                chiefComplaint: $('editChiefComplaint').value,
+                diagnosis: $('editDiagnosis').value,
+                treatment: $('editTreatment').value,
+                followUp: $('editFollowUp').value
+            };
+            try {
+                const res = await fetch('/doctor/recordInfo/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1) {
+                    alert('更新成功');
+                    // 更新本地数据
+                    currentRecord.recordNo = data.recordNo;
+                    currentRecord.registerId = data.registerId;
+                    currentRecord.chiefComplaint = data.chiefComplaint;
+                    currentRecord.diagnosis = data.diagnosis;
+                    currentRecord.treatment = data.treatment;
+                    currentRecord.followUp = data.followUp;
+                    showRecordDetail();
+                } else {
+                    alert('更新失败: ' + (res.msg || '未知错误'));
+                }
+            } catch (e) {
+                alert('网络错误');
+            }
+        }
+
+        async function deleteRecord() {
+            if (!confirm('确定要删除这份病历吗？')) return;
+            try {
+                const res = await fetch('/doctor/recordInfo/deleteById/' + currentRecord.recordId, {
+                    method: 'POST',
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1) {
+                    alert('删除成功');
+                    currentRecord = null;
+                    loadRecords();
+                    $('mainContent').innerHTML = '<div class="empty-state"><div style="font-size:48px;margin-bottom:20px;">📋</div><p>选择一份病历查看详情</p></div>';
+                } else {
+                    alert('删除失败: ' + (res.msg || '未知错误'));
+                }
+            } catch (e) {
+                alert('网络错误');
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'doctor-dashboard.html?userId=' + encodeURIComponent(userId) + '&userName=' + encodeURIComponent(userName);
+        }
+
+        // 初始化
+        initDoctorId().then(() => loadRecords());
+    </script>
+</body>
+</html>

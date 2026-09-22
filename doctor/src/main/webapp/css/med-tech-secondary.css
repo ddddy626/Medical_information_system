@@ -1,0 +1,397 @@
+/* =========================================================
+   UI_Layout_Color_Review — 二级页配色/布局统一层
+   加载顺序：med-tech.css →（页内 style）→ med-tech-pages.css → 本文件最后
+   ========================================================= */
+
+:root {
+    --bg-deep: #060812;
+    --bg-2: #0a1020;
+    --panel: rgba(10, 16, 32, 0.92);
+    --panel-strong: rgba(12, 18, 36, 0.96);
+    --line: rgba(78, 205, 196, 0.28);
+    --text: #f0f4f8;
+    --muted: rgba(240, 244, 248, 0.55);
+    --accent: #4ecdc4;
+    --accent-2: #2c7be5;
+    --cyan-bright: #7ee8e0;
+    --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.18);
+    --shadow-md: 0 16px 48px rgba(0, 0, 0, 0.28);
+    --radius-card: 10px;
+    --pad-card: 20px;
+    --pad-stat: 18px;
+    --page-bg-deep: var(--bg-deep);
+    --page-text: var(--text);
+    --page-muted: var(--muted);
+    --page-line: var(--line);
+    --page-panel: var(--panel);
+    --page-panel-strong: var(--panel-strong);
+    --page-cyan: var(--accent);
+    --page-cyan-bright: var(--cyan-bright);
+    --page-blue: var(--accent-2);
+    --page-hover: rgba(78, 205, 196, 0.1);
+    --page-warn: #f59e0b;
+    --page-danger: #ef4444;
+    --primary: var(--accent);
+    --primary-color: var(--accent);
+}
+
+/* P1: body 继承色强制深色 */
+html body.med-tech-page {
+    background-color: #060812 !important;
+    background-image:
+        radial-gradient(circle at 78% 24%, rgba(78, 205, 196, 0.12), transparent 38%),
+        radial-gradient(circle at 16% 82%, rgba(44, 123, 229, 0.1), transparent 34%),
+        linear-gradient(135deg, rgba(6, 8, 18, 0.92), rgba(10, 16, 32, 0.88)) !important;
+    background-attachment: fixed !important;
+    color: #f0f4f8 !important;
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* P1/P2: 卡片圆角 / 阴影 / 边框 / 内边距统一 */
+html body.med-tech-page .topbar,
+html body.med-tech-page .header,
+html body.med-tech-page .card,
+html body.med-tech-page .panel,
+html body.med-tech-page .form-card,
+html body.med-tech-page .content-card,
+html body.med-tech-page .main-card,
+html body.med-tech-page .info-card,
+html body.med-tech-page .profile-card,
+html body.med-tech-page .chart-section,
+html body.med-tech-page .data-section,
+html body.med-tech-page .filter-bar,
+html body.med-tech-page .chat-panel,
+html body.med-tech-page .chat-header,
+html body.med-tech-page .chat-box,
+html body.med-tech-page .message-item,
+html body.med-tech-page .msg-card,
+html body.med-tech-page .record-card,
+html body.med-tech-page .order-card,
+html body.med-tech-page .appoint-card,
+html body.med-tech-page .list-item,
+html body.med-tech-page .crud-card,
+html body.med-tech-page .stat-card,
+html body.med-tech-page .action-card,
+html body.med-tech-page .hero-panel,
+html body.med-tech-page .ai-section,
+html body.med-tech-page .consult-list-wrap,
+html body.med-tech-page .dept-list,
+html body.med-tech-page .doctor-list {
+    background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92)) !important;
+    border: 1px solid rgba(78, 205, 196, 0.28) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+    color: #f0f4f8 !important;
+}
+
+html body.med-tech-page .stat-card {
+    padding: 18px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+html body.med-tech-page .card,
+html body.med-tech-page .panel,
+html body.med-tech-page .form-card,
+html body.med-tech-page .record-card,
+html body.med-tech-page .order-card,
+html body.med-tech-page .appoint-card,
+html body.med-tech-page .message-item,
+html body.med-tech-page .content-card {
+    padding: 20px !important;
+}
+
+html body.med-tech-page .topbar,
+html body.med-tech-page .header {
+    padding: 14px 20px !important;
+}
+
+/* 抵消页内残留白底 */
+html body.med-tech-page .topbar,
+html body.med-tech-page .header,
+html body.med-tech-page .card,
+html body.med-tech-page .panel,
+html body.med-tech-page .modal-box,
+html body.med-tech-page .modal-content,
+html body.med-tech-page .filter-bar,
+html body.med-tech-page .chat-header-bar,
+html body.med-tech-page .chat-input-bar {
+    background-image: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92)) !important;
+}
+
+/* 标题 / 正文色 */
+html body.med-tech-page h1,
+html body.med-tech-page h2,
+html body.med-tech-page h3,
+html body.med-tech-page h4,
+html body.med-tech-page .topbar h1,
+html body.med-tech-page .brand h1,
+html body.med-tech-page .card-title,
+html body.med-tech-page .section-title,
+html body.med-tech-page .user-name,
+html body.med-tech-page .order-title,
+html body.med-tech-page .ci-name,
+html body.med-tech-page .patient-name {
+    color: #ffffff !important;
+}
+
+html body.med-tech-page p,
+html body.med-tech-page .muted,
+html body.med-tech-page .hint,
+html body.med-tech-page .empty-state,
+html body.med-tech-page .empty-state p,
+html body.med-tech-page .brand p,
+html body.med-tech-page .topbar p {
+    color: rgba(240, 244, 248, 0.55) !important;
+}
+
+/* 表格 */
+html body.med-tech-page table,
+html body.med-tech-page .med-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    color: #f0f4f8 !important;
+}
+
+html body.med-tech-page table th,
+html body.med-tech-page .med-table th {
+    background: rgba(78, 205, 196, 0.08) !important;
+    color: #4ecdc4 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    padding: 10px 12px !important;
+    font-weight: 600;
+}
+
+html body.med-tech-page table td,
+html body.med-tech-page .med-table td {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    color: #f0f4f8 !important;
+    padding: 10px 12px !important;
+    word-break: break-word;
+}
+
+/* 操作列略宽，避免按钮截断（审查：预约管理表格操作列过窄） */
+html body.med-tech-page table th:last-child,
+html body.med-tech-page table td:last-child,
+html body.med-tech-page .med-table th:last-child,
+html body.med-tech-page .med-table td:last-child {
+    width: 26%;
+    min-width: 140px;
+}
+
+/* 姓名列收窄，给操作列让位 */
+html body.med-tech-page table th:first-child,
+html body.med-tech-page table td:first-child {
+    width: 14%;
+}
+
+html body.med-tech-page .med-table th:nth-child(1),
+html body.med-tech-page .med-table td:nth-child(1) {
+    width: 22%;
+}
+html body.med-tech-page .med-table th:nth-child(2),
+html body.med-tech-page .med-table td:nth-child(2) {
+    width: 14%;
+}
+
+/* 预约/订单状态左侧色条 */
+html body.med-tech-page .appoint-card,
+html body.med-tech-page .order-card,
+html body.med-tech-page .list-item.status-pending,
+html body.med-tech-page .record-card {
+    position: relative;
+    overflow: hidden;
+}
+
+html body.med-tech-page .appointment-item.status-pending,
+html body.med-tech-page .card.status-pending,
+html body.med-tech-page .badge-pending,
+html body.med-tech-page .appoint-card.is-pending,
+html body.med-tech-page .order-card.is-pending,
+html body.med-tech-page .doctor-card.unavailable {
+    box-shadow: inset 3px 0 0 #f59e0b, 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+html body.med-tech-page .appointment-item.status-accepted,
+html body.med-tech-page .status-confirmed,
+html body.med-tech-page .badge-confirmed,
+html body.med-tech-page .appoint-card.is-confirmed,
+html body.med-tech-page .order-card.is-paid,
+html body.med-tech-page .card.status-paid,
+html body.med-tech-page .doctor-card.available {
+    box-shadow: inset 3px 0 0 #4ecdc4, 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+html body.med-tech-page .appointment-item.status-completed,
+html body.med-tech-page .status-done,
+html body.med-tech-page .status-completed,
+html body.med-tech-page .appoint-card.is-done,
+html body.med-tech-page .order-card.is-done {
+    box-shadow: inset 3px 0 0 rgba(240, 244, 248, 0.35), 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 状态徽章：暗色主题（覆盖页内浅色 badge） */
+html body.med-tech-page .status-badge.status-pending,
+html body.med-tech-page span.status-pending {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+}
+html body.med-tech-page .status-badge.status-accepted,
+html body.med-tech-page span.status-accepted {
+    background: rgba(78, 205, 196, 0.18) !important;
+    color: #7ee8e0 !important;
+}
+html body.med-tech-page .status-badge.status-completed,
+html body.med-tech-page span.status-completed,
+html body.med-tech-page .status-badge.status-paid {
+    background: rgba(240, 244, 248, 0.12) !important;
+    color: rgba(240, 244, 248, 0.75) !important;
+}
+html body.med-tech-page .status-badge.status-paid,
+html body.med-tech-page span.status-paid {
+    background: rgba(78, 205, 196, 0.18) !important;
+    color: #7ee8e0 !important;
+}
+
+html body.med-tech-page .patient-detail h4,
+html body.med-tech-page .appointment-body,
+html body.med-tech-page .appointment-meta,
+html body.med-tech-page .info-label,
+html body.med-tech-page .info-value {
+    color: #f0f4f8 !important;
+}
+html body.med-tech-page .patient-detail p {
+    color: rgba(240, 244, 248, 0.55) !important;
+}
+
+html body.med-tech-page .appointment-item {
+    background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92)) !important;
+    border: 1px solid rgba(78, 205, 196, 0.28) !important;
+    border-radius: 10px !important;
+    padding: 20px !important;
+    margin-bottom: 12px;
+    color: #f0f4f8 !important;
+}
+
+html body.med-tech-page .chat-header {
+    border: 1px solid rgba(78, 205, 196, 0.28) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 导航当前页：返回按钮旁标题高亮 */
+html body.med-tech-page .topbar .brand h1,
+html body.med-tech-page .header h1,
+html body.med-tech-page .nav-active {
+    color: #7ee8e0 !important;
+    border-bottom: 2px solid transparent;
+}
+
+html body.med-tech-page .back-btn.nav-active,
+html body.med-tech-page a.nav-active {
+    color: #4ecdc4 !important;
+    border-bottom: 2px solid #4ecdc4;
+}
+
+/* 表单控件 */
+html body.med-tech-page input,
+html body.med-tech-page textarea,
+html body.med-tech-page select {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f0f4f8 !important;
+    border-radius: 6px !important;
+}
+
+html body.med-tech-page input:focus,
+html body.med-tech-page textarea:focus,
+html body.med-tech-page select:focus {
+    border-color: #4ecdc4 !important;
+    box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2) !important;
+    outline: none !important;
+}
+
+/* 弹层 */
+html body.med-tech-page .modal,
+html body.med-tech-page .modal-box,
+html body.med-tech-page .modal-content,
+html body.med-tech-page .editor-dialog {
+    background: linear-gradient(180deg, rgba(12, 18, 36, 0.98), rgba(10, 16, 32, 0.96)) !important;
+    border: 1px solid rgba(78, 205, 196, 0.28) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.38) !important;
+    color: #f0f4f8 !important;
+}
+
+/* 覆盖页内白玻璃卡片（rgba(255,255,255,0.95) + backdrop-filter） */
+html body.med-tech-page .topbar,
+html body.med-tech-page .header,
+html body.med-tech-page .card,
+html body.med-tech-page .panel,
+html body.med-tech-page .filter-bar,
+html body.med-tech-page .appointment-item,
+html body.med-tech-page .consult-sidebar,
+html body.med-tech-page .chat-panel,
+html body.med-tech-page .chat-header,
+html body.med-tech-page .chat-header-bar,
+html body.med-tech-page .chat-input-bar,
+html body.med-tech-page .input-area,
+html body.med-tech-page .message-item,
+html body.med-tech-page .msg-card,
+html body.med-tech-page .record-card,
+html body.med-tech-page .order-card,
+html body.med-tech-page .doctor-item,
+html body.med-tech-page .doctor-card,
+html body.med-tech-page .dept-item,
+html body.med-tech-page .form-card,
+html body.med-tech-page .upload-panel,
+html body.med-tech-page .med-glass,
+html body.med-tech-page .glass-surface,
+html body.med-tech-page .modal,
+html body.med-tech-page .modal-box,
+html body.med-tech-page .modal-content,
+html body.med-tech-page .editor-dialog,
+html body.med-tech-page .stat-card,
+html body.med-tech-page .action-card,
+html body.med-tech-page .hero-panel,
+html body.med-tech-page .ai-section {
+    background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92)) !important;
+    background-color: rgba(12, 18, 36, 0.96) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* 页内残留浅色字 */
+html body.med-tech-page .brand h1,
+html body.med-tech-page .card-title,
+html body.med-tech-page .patient-detail h4,
+html body.med-tech-page h4 {
+    color: #ffffff !important;
+}
+html body.med-tech-page .brand p,
+html body.med-tech-page .patient-detail p,
+html body.med-tech-page .meta,
+html body.med-tech-page .info-row,
+html body.med-tech-page .appointment-body span,
+html body.med-tech-page .appointment-body p {
+    color: rgba(240, 244, 248, 0.55) !important;
+}
+
+/* 页内白底按钮（filter / page） */
+html body.med-tech-page .filter-btn,
+html body.med-tech-page .page-btn,
+html body.med-tech-page .back-btn {
+    background: rgba(0, 0, 0, 0.35) !important;
+    border: 1px solid rgba(78, 205, 196, 0.28) !important;
+    color: #f0f4f8 !important;
+}
+html body.med-tech-page .filter-btn:hover,
+html body.med-tech-page .page-btn:hover {
+    background: rgba(78, 205, 196, 0.12) !important;
+}
+html body.med-tech-page .filter-btn.active,
+html body.med-tech-page .page-btn.active {
+    background: rgba(78, 205, 196, 0.22) !important;
+    border-color: #4ecdc4 !important;
+    color: #7ee8e0 !important;
+}

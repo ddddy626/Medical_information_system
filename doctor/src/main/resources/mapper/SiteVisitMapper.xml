@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.SiteVisitMapper">
+
+    <resultMap id="BaseResultMap" type="com.dyh.doctor.domain.SiteVisitEntity">
+        <id column="id" property="id"/>
+        <result column="visit_time" property="visitTime"/>
+        <result column="visit_url" property="visitUrl"/>
+        <result column="visitor_ip" property="visitorIp"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">id, visit_time, visit_url, visitor_ip</sql>
+
+    <select id="queryAllByLimit" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM site_visit
+        <where>
+            <if test="siteVisit.visitTime != null and siteVisit.visitTime != ''">AND visit_time = #{siteVisit.visitTime}</if>
+            <if test="siteVisit.visitUrl != null and siteVisit.visitUrl != ''">AND visit_url = #{siteVisit.visitUrl}</if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM site_visit
+        <where>
+            <if test="siteVisit.visitTime != null and siteVisit.visitTime != ''">AND visit_time = #{siteVisit.visitTime}</if>
+            <if test="siteVisit.visitUrl != null and siteVisit.visitUrl != ''">AND visit_url = #{siteVisit.visitUrl}</if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.dyh.doctor.domain.SiteVisitEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO site_visit (visit_time, visit_url, visitor_ip)
+        VALUES (#{visitTime}, #{visitUrl}, #{visitorIp})
+    </insert>
+
+</mapper>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.ConsultInfoMapper">
+
+    <resultMap id="consultInfoMap" type="com.dyh.doctor.domain.ConsultInfoEntity">
+        <result column="consult_id" property="consultId" />
+        <result column="content" property="content" />
+        <result column="reply" property="reply" />
+        <result column="consult_time" property="consultTime" />
+        <result column="reply_time" property="replyTime" />
+        <result column="consult_status" property="consultStatus" />
+        <result column="patient_id" property="patientId" />
+        <result column="doctor_id" property="doctorId" />
+        <result column="consult_type" property="consultType" />
+        <result column="sender_role" property="senderRole" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            consult_info.consult_id, consult_info.content, consult_info.reply, consult_info.consult_time, consult_info.reply_time, consult_info.consult_status, consult_info.patient_id, consult_info.doctor_id, consult_info.consult_type, consult_info.sender_role
+        FROM consult_info
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="condition">
+        <if test="consultInfo.consultId != null">
+             and consult_info.consult_id = #{consultInfo.consultId}
+        </if>
+        <if test="consultInfo.content != null and consultInfo.content != ''">
+             and consult_info.content LIKE concat('%', #{consultInfo.content}, '%')
+        </if>
+        <if test="consultInfo.reply != null and consultInfo.reply != ''">
+             and consult_info.reply LIKE concat('%', #{consultInfo.reply}, '%')
+        </if>
+        <if test="consultInfo.consultTime != null and consultInfo.consultTime != ''">
+             and consult_info.consult_time LIKE concat('%', #{consultInfo.consultTime}, '%')
+        </if>
+        <if test="consultInfo.replyTime != null and consultInfo.replyTime != ''">
+             and consult_info.reply_time LIKE concat('%', #{consultInfo.replyTime}, '%')
+        </if>
+        <if test="consultInfo.consultStatus != null">
+             and consult_info.consult_status = #{consultInfo.consultStatus}
+        </if>
+        <if test="consultInfo.patientId != null">
+             and consult_info.patient_id = #{consultInfo.patientId}
+        </if>
+        <if test="consultInfo.doctorId != null">
+             and consult_info.doctor_id = #{consultInfo.doctorId}
+        </if>
+        <if test="consultInfo.consultType != null">
+             and consult_info.consult_type = #{consultInfo.consultType}
+        </if>
+        <if test="consultInfo.senderRole != null">
+             and consult_info.sender_role = #{consultInfo.senderRole}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="consultInfoMap">
+        <include refid="baseSql"></include>
+        AND consult_info.consult_id = #{consultId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="consultInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by consult_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="consultId">
+        insert into consult_info(content, reply, consult_time, reply_time, consult_status, patient_id, doctor_id, consult_type, sender_role)
+        values(#{content}, #{reply},
+            <if test="consultTime != null and consultTime != ''">#{consultTime}</if>
+            <if test="consultTime == null or consultTime == ''">NOW()</if>,
+            <if test="replyTime != null and replyTime != ''">#{replyTime}</if>
+            <if test="replyTime == null or replyTime == ''">NULL</if>,
+        #{consultStatus}, #{patientId}, #{doctorId}, #{consultType}, #{senderRole})
+    </insert>
+
+    <update id="update">
+        update consult_info
+        <set>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            <if test="reply != null and reply != ''">
+                reply = #{reply},
+            </if>
+            <if test="consultTime != null and consultTime != ''">
+                consult_time = #{consultTime},
+            </if>
+            <if test="replyTime != null and replyTime != ''">
+                reply_time = #{replyTime},
+            </if>
+            <if test="consultStatus != null">
+                consult_status = #{consultStatus},
+            </if>
+            <if test="patientId != null">
+                patient_id = #{patientId},
+            </if>
+            <if test="doctorId != null">
+                doctor_id = #{doctorId},
+            </if>
+            <if test="consultType != null">
+                consult_type = #{consultType},
+            </if>
+            <if test="senderRole != null">
+                sender_role = #{senderRole},
+            </if>
+        </set>
+        WHERE consult_id = #{consultId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM consult_info WHERE consult_id = #{consultId}
+    </delete>
+</mapper>

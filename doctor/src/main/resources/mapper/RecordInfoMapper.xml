@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.RecordInfoMapper">
+
+    <resultMap id="recordInfoMap" type="com.dyh.doctor.domain.RecordInfoEntity">
+        <result column="record_id" property="recordId" />
+        <result column="record_no" property="recordNo" />
+        <result column="record_time" property="recordTime" />
+        <result column="chief_complaint" property="chiefComplaint" />
+        <result column="diagnosis" property="diagnosis" />
+        <result column="treatment" property="treatment" />
+        <result column="follow_up" property="followUp" />
+        <result column="pres_no" property="presNo" />
+        <result column="pres_date" property="presDate" />
+        <result column="pres_usage" property="presUsage" />
+        <result column="med_status" property="medStatus" />
+        <result column="register_id" property="registerId" />
+        <result column="doctor_id" property="doctorId" />
+        <result column="patient_id" property="patientId" />
+        <result column="patient_name" property="patientName" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            record_info.record_id, record_info.record_no, record_info.record_time, record_info.chief_complaint, record_info.diagnosis, record_info.treatment, record_info.follow_up, record_info.pres_no, record_info.pres_date, record_info.pres_usage, record_info.med_status, record_info.register_id, record_info.doctor_id, record_info.patient_id,
+            p.patient_name
+        FROM record_info
+        LEFT JOIN patient_info p ON record_info.patient_id = p.user_id
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="condition">
+        <if test="recordInfo.recordId != null">
+             and record_info.record_id = #{recordInfo.recordId}
+        </if>
+        <if test="recordInfo.recordNo != null and recordInfo.recordNo != ''">
+             and record_info.record_no LIKE concat('%', #{recordInfo.recordNo}, '%')
+        </if>
+        <if test="recordInfo.recordTime != null and recordInfo.recordTime != ''">
+             and record_info.record_time LIKE concat('%', #{recordInfo.recordTime}, '%')
+        </if>
+        <if test="recordInfo.chiefComplaint != null and recordInfo.chiefComplaint != ''">
+             and record_info.chief_complaint LIKE concat('%', #{recordInfo.chiefComplaint}, '%')
+        </if>
+        <if test="recordInfo.diagnosis != null and recordInfo.diagnosis != ''">
+             and record_info.diagnosis LIKE concat('%', #{recordInfo.diagnosis}, '%')
+        </if>
+        <if test="recordInfo.treatment != null and recordInfo.treatment != ''">
+             and record_info.treatment LIKE concat('%', #{recordInfo.treatment}, '%')
+        </if>
+        <if test="recordInfo.followUp != null and recordInfo.followUp != ''">
+             and record_info.follow_up LIKE concat('%', #{recordInfo.followUp}, '%')
+        </if>
+        <if test="recordInfo.presNo != null and recordInfo.presNo != ''">
+             and record_info.pres_no LIKE concat('%', #{recordInfo.presNo}, '%')
+        </if>
+        <if test="recordInfo.presDate != null and recordInfo.presDate != ''">
+             and record_info.pres_date LIKE concat('%', #{recordInfo.presDate}, '%')
+        </if>
+        <if test="recordInfo.presUsage != null and recordInfo.presUsage != ''">
+             and record_info.pres_usage LIKE concat('%', #{recordInfo.presUsage}, '%')
+        </if>
+        <if test="recordInfo.medStatus != null">
+             and record_info.med_status = #{recordInfo.medStatus}
+        </if>
+        <if test="recordInfo.registerId != null">
+             and record_info.register_id = #{recordInfo.registerId}
+        </if>
+        <if test="recordInfo.doctorId != null">
+             and record_info.doctor_id = #{recordInfo.doctorId}
+        </if>
+        <if test="recordInfo.patientId != null">
+             and record_info.patient_id = #{recordInfo.patientId}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="recordInfoMap">
+        <include refid="baseSql"></include>
+        AND record_info.record_id = #{recordId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="recordInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by record_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="recordId">
+        insert into record_info(record_no, record_time, chief_complaint, diagnosis, treatment, follow_up, pres_no, pres_date, pres_usage, med_status, register_id, doctor_id, patient_id)
+        values(#{recordNo},
+            <choose>
+                <when test="recordTime != null and recordTime != ''">#{recordTime}</when>
+                <otherwise>NOW()</otherwise>
+            </choose>,
+            #{chiefComplaint}, #{diagnosis}, #{treatment}, #{followUp}, #{presNo}, #{presDate}, #{presUsage},
+            <choose>
+                <when test="medStatus != null">#{medStatus}</when>
+                <otherwise>0</otherwise>
+            </choose>,
+            <choose>
+                <when test="registerId != null">#{registerId}</when>
+                <otherwise>0</otherwise>
+            </choose>,
+            <choose>
+                <when test="doctorId != null">#{doctorId}</when>
+                <otherwise>0</otherwise>
+            </choose>,
+            #{patientId})
+    </insert>
+
+    <update id="update">
+        update record_info
+        <set>
+            <if test="recordNo != null and recordNo != ''">
+                record_no = #{recordNo},
+            </if>
+            <if test="recordTime != null and recordTime != ''">
+                record_time = #{recordTime},
+            </if>
+            <if test="chiefComplaint != null and chiefComplaint != ''">
+                chief_complaint = #{chiefComplaint},
+            </if>
+            <if test="diagnosis != null and diagnosis != ''">
+                diagnosis = #{diagnosis},
+            </if>
+            <if test="treatment != null and treatment != ''">
+                treatment = #{treatment},
+            </if>
+            <if test="followUp != null and followUp != ''">
+                follow_up = #{followUp},
+            </if>
+            <if test="presNo != null and presNo != ''">
+                pres_no = #{presNo},
+            </if>
+            <if test="presDate != null and presDate != ''">
+                pres_date = #{presDate},
+            </if>
+            <if test="presUsage != null and presUsage != ''">
+                pres_usage = #{presUsage},
+            </if>
+            <if test="medStatus != null">
+                med_status = #{medStatus},
+            </if>
+            <if test="registerId != null">
+                register_id = #{registerId},
+            </if>
+            <if test="doctorId != null">
+                doctor_id = #{doctorId},
+            </if>
+            <if test="patientId != null">
+                patient_id = #{patientId},
+            </if>
+        </set>
+        WHERE record_id = #{recordId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM record_info WHERE record_id = #{recordId}
+    </delete>
+</mapper>
+

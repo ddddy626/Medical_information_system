@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>咨询管理 - 医生工作台</title>
+    <style>
+        :root { --primary: #ff7043; --success: #1b8f46; --info: #3b82f6; --warning: #d65b00; }
+        * { box-sizing: border-box; }
+        body.med-tech-page { min-height: 100vh; }
+
+        body.med-tech-page .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .topbar h1 { margin: 0; font-size: 20px; color: #223656; }
+        .back-btn {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .back-btn:hover { background: #e5e7eb; }
+
+        /* 左右布局：咨询列表 | 聊天区 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+        }
+
+        /* 左侧咨询列表 */
+        .consult-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .filter-bar {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 8px;
+        }
+        .filter-tab {
+            padding: 6px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        .filter-tab:hover { border-color: var(--primary); color: var(--primary); }
+        .filter-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .consult-list-wrap {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .consult-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .consult-item:hover { background: #f9fafb; }
+        .consult-item.active { background: #fff7f5; border-left: 3px solid var(--primary); }
+        .consult-item:last-child { border-bottom: none; }
+        .ci-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .ci-name { font-size: 14px; font-weight: 600; color: #223656; }
+        .ci-time { font-size: 11px; color: #9ca3af; }
+        .ci-preview { font-size: 12px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+        .ci-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 6px;
+        }
+        .ci-badge.pending { background: #fef3c7; color: #92400e; }
+        .ci-badge.replied { background: #d1fae5; color: #065f46; }
+        .empty-side { text-align: center; padding: 40px 16px; color: #9ca3af; font-size: 14px; }
+
+        /* 右侧聊天区 */
+        .chat-panel {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+        }
+        .chat-empty {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 15px;
+        }
+        .chat-header-bar {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header-bar h3 { margin: 0; font-size: 16px; color: #223656; }
+        .chat-header-bar span { font-size: 12px; color: #9ca3af; }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+        .sys-line {
+            text-align: center;
+            padding: 4px 0;
+            margin-bottom: 10px;
+        }
+        .sys-line span {
+            background: rgba(0,0,0,0.05);
+            color: #6b7280;
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+        .time-divider {
+            text-align: center;
+            margin: 12px 0 8px;
+        }
+        .time-divider span {
+            font-size: 12px;
+            color: #9ca3af;
+            background: rgba(0,0,0,0.05);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+        .msg { display: flex; margin-bottom: 12px; }
+        .msg.left { justify-content: flex-start; }
+        .msg.right { justify-content: flex-end; }
+        .msg-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .msg.left .msg-bubble { background: #f3f4f6; color: #333; border-bottom-left-radius: 4px; }
+        .msg.right .msg-bubble { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+        .msg.ai .msg-bubble { background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0369a1; }
+        .msg-bubble p { margin: 0; }
+        .msg-time {
+            font-size: 11px;
+            margin-top: 6px;
+            color: #9ca3af;
+            text-align: right;
+        }
+        .msg.right .msg-time { color: rgba(255,255,255,0.75); }
+
+        .chat-input-bar {
+            padding: 12px 16px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input-bar textarea {
+            flex: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            min-height: 42px;
+            max-height: 80px;
+            font-family: inherit;
+        }
+        .chat-input-bar textarea:focus { border-color: var(--primary); }
+        .chat-send-btn {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            align-self: flex-end;
+        }
+        .chat-send-btn:hover { opacity: 0.9; }
+
+        @media (max-width: 768px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .chat-panel { height: 500px; }
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <h1 class="nav-active">咨询管理</h1>
+            <button class="back-btn" id="back-btn">返回工作台</button>
+        </div>
+        <div class="main-layout">
+            <!-- 左侧咨询列表 -->
+            <div class="consult-sidebar">
+                <div class="filter-bar">
+                    <div class="filter-tab active" data-f="pending" onclick="setFilter('pending')">待回复</div>
+                    <div class="filter-tab" data-f="replied" onclick="setFilter('replied')">已回复</div>
+                    <div class="filter-tab" data-f="all" onclick="setFilter('all')">全部</div>
+                </div>
+                <div class="consult-list-wrap" id="consult-list">
+                    <div class="empty-side">加载中...</div>
+                </div>
+            </div>
+            <!-- 右侧聊天区 -->
+            <div class="chat-panel" id="chat-panel">
+                <div class="chat-empty" id="chat-empty">请从左侧选择一位患者开始对话</div>
+                <div id="chat-area" style="display:none;height:100%;display:none;flex-direction:column;">
+                    <div class="chat-header-bar">
+                        <h3 id="chat-patient-name">-</h3>
+                        <span id="chat-patient-id"></span>
+                    </div>
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-input-bar">
+                        <textarea id="reply-input" placeholder="输入回复内容..."></textarea>
+                        <button class="chat-send-btn" id="send-reply">发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const userId = new URLSearchParams(location.search).get('userId');
+        const userName = new URLSearchParams(location.search).get('userName');
+
+        let myDoctorId = null;
+        let allConsults = [];
+        let patientNames = {};
+        let currentFilter = 'pending';
+        let activePatientId = null;
+        let activeDoctorId = null;
+        let lastMsgId = 0;
+        let pollTimer = null;
+        let renderedMsgIds = new Set();
+        let lastBubbleTime = null;
+
+        $('back-btn').onclick = () => {
+            location.href = 'doctor-dashboard.html?userId=' + encodeURIComponent(userId) + '&userName=' + encodeURIComponent(userName);
+        };
+
+        const loadDoctorId = async () => {
+            try {
+                const res = await fetch('/doctor/doctorInfo/queryByPage?userId=' + userId + '&page=1&size=1', { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    myDoctorId = res.content.content[0].doctorId;
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        const loadPatientNames = async () => {
+            try {
+                const [pRes, uRes] = await Promise.all([
+                    fetch('/doctor/patientInfo/queryByPage?page=1&size=999', { credentials: 'include' }).then(r => r.json()),
+                    fetch('/doctor/userInfo/queryByPage?page=1&size=999', { credentials: 'include' }).then(r => r.json())
+                ]);
+                if (pRes.code === 1 && pRes.content && pRes.content.content) {
+                    pRes.content.content.forEach(p => {
+                        const label = p.patientName || '';
+                        if (p.patientId != null) patientNames[p.patientId] = label;
+                        if (p.userId != null) patientNames[p.userId] = label || patientNames[p.userId] || '';
+                    });
+                }
+                if (uRes.code === 1 && uRes.content && uRes.content.content) {
+                    uRes.content.content.forEach(u => {
+                        if (u.userId == null) return;
+                        // 优先显示用户名，而不是数字 ID
+                        const label = u.username || u.realName || patientNames[u.userId] || '';
+                        if (label) patientNames[u.userId] = label;
+                    });
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        const getName = pid => patientNames[pid] || ('患者');
+
+        const loadConsults = async () => {
+            if (!myDoctorId) return;
+            try {
+                const res = await fetch('/doctor/consultInfo/queryByDoctorId?doctorId=' + myDoctorId, { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content) {
+                    allConsults = res.content;
+                    renderList();
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        const setFilter = f => {
+            currentFilter = f;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.f === f));
+            renderList();
+        };
+
+        const isHumanChatRow = (c) =>
+            c.consultType === 1 &&
+            c.content &&
+            c.content.trim() &&
+            !c.content.startsWith('【AI咨询对话记录】');
+
+        const patientHasPendingReply = (patientId) => {
+            const rows = allConsults.filter(c => c.patientId === patientId && c.consultType === 1);
+            const patientMsgs = rows.filter(c => c.senderRole === 0 && isHumanChatRow(c));
+            const doctorMsgs = rows.filter(c => c.senderRole === 1 && isHumanChatRow(c));
+
+            if (patientMsgs.length === 0 && doctorMsgs.length === 0) {
+                const legacy = rows.find(c => isHumanChatRow(c));
+                return legacy ? !legacy.reply : false;
+            }
+
+            const lastPatientMsg = patientMsgs.length > 0 ? Math.max(...patientMsgs.map(m => m.consultId)) : 0;
+            const lastDoctorMsg = doctorMsgs.length > 0 ? Math.max(...doctorMsgs.map(m => m.consultId)) : 0;
+            return lastPatientMsg > lastDoctorMsg;
+        };
+
+        const renderList = () => {
+            const byPatient = {};
+            allConsults.forEach(c => {
+                if (c.consultType !== 1 || !c.patientId) return;
+                const key = c.patientId;
+                if (!byPatient[key] || c.consultId > byPatient[key].consultId) {
+                    byPatient[key] = c;
+                }
+            });
+            let items = Object.values(byPatient);
+
+            items.forEach(item => {
+                item._hasNew = patientHasPendingReply(item.patientId);
+                const chatRows = allConsults
+                    .filter(c => c.patientId === item.patientId && isHumanChatRow(c) && (c.senderRole === 0 || c.senderRole === 1))
+                    .sort((a, b) => (a.consultId || 0) - (b.consultId || 0));
+                const lastRow = chatRows.length > 0 ? chatRows[chatRows.length - 1] : item;
+                item._lastMsg = lastRow.content || '';
+            });
+
+            if (currentFilter === 'pending') {
+                items = items.filter(i => i._hasNew);
+            } else if (currentFilter === 'replied') {
+                items = items.filter(i => !i._hasNew);
+            }
+
+            items.sort((a, b) => (b.consultId || 0) - (a.consultId || 0));
+
+            if (items.length === 0) {
+                $('consult-list').innerHTML = '<div class="empty-side">暂无咨询</div>';
+                return;
+            }
+
+            $('consult-list').innerHTML = items.map(item => {
+                const name = getName(item.patientId);
+                const preview = (item._lastMsg || item.content || '').replace(/<br>/g, ' ').substring(0, 40);
+                const badge = item._hasNew
+                    ? '<span class="ci-badge pending">待回复</span>'
+                    : '<span class="ci-badge replied">已回复</span>';
+                const isActive = activePatientId === item.patientId ? ' active' : '';
+                return '<div class="consult-item' + isActive + '" onclick="openChat(' + item.patientId + ')">' +
+                    '<div class="ci-top"><span class="ci-name">' + name + badge + '</span><span class="ci-time">' + (item.consultTime || '') + '</span></div>' +
+                    '<div class="ci-preview">' + preview + '</div>' +
+                '</div>';
+            }).join('');
+        };
+
+        // ========== 消息渲染（去重 + 微信式时间） ==========
+        const escapeHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+        const parseMsgTime = (timeStr) => {
+            if (!timeStr) return new Date();
+            const d = new Date(String(timeStr).replace(/-/g, '/'));
+            return isNaN(d.getTime()) ? new Date() : d;
+        };
+
+        const formatMsgTime = (timeStr) => {
+            const d = parseMsgTime(timeStr);
+            const now = new Date();
+            const hm = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            if (d.toDateString() === now.toDateString()) return hm;
+            const yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            if (d.toDateString() === yesterday.toDateString()) return '昨天 ' + hm;
+            return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' + hm;
+        };
+
+        const formatDividerTime = (timeStr) => {
+            const d = parseMsgTime(timeStr);
+            const now = new Date();
+            const hm = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            if (d.toDateString() === now.toDateString()) return hm;
+            return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + hm;
+        };
+
+        const resetChatRenderState = () => {
+            renderedMsgIds = new Set();
+            lastMsgId = 0;
+            lastBubbleTime = null;
+        };
+
+        const maybeAddTimeDivider = (timeStr) => {
+            const d = parseMsgTime(timeStr);
+            if (!lastBubbleTime || (d.getTime() - lastBubbleTime.getTime()) > 5 * 60 * 1000) {
+                const wrap = $('chat-messages');
+                const div = document.createElement('div');
+                div.className = 'time-divider';
+                div.innerHTML = '<span>' + formatDividerTime(timeStr) + '</span>';
+                wrap.appendChild(div);
+            }
+            lastBubbleTime = d;
+        };
+
+        const addSysLine = (text) => {
+            const msgs = $('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'sys-line';
+            div.innerHTML = '<span>' + escapeHtml(text) + '</span>';
+            msgs.appendChild(div);
+            msgs.scrollTop = msgs.scrollHeight;
+        };
+
+        const addChatMsg = (text, side, extraClass, timeStr, renderKey) => {
+            if (renderKey != null && renderedMsgIds.has(renderKey)) return;
+            if (renderKey != null) renderedMsgIds.add(renderKey);
+
+            const ts = timeStr || new Date().toLocaleString('zh-CN', { hour12: false });
+            maybeAddTimeDivider(ts);
+
+            const msgs = $('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'msg ' + side + (extraClass ? ' ' + extraClass : '');
+            if (renderKey != null) div.dataset.msgKey = String(renderKey);
+            div.innerHTML = '<div class="msg-bubble"><p>' + escapeHtml(text) + '</p><div class="msg-time">' + formatMsgTime(ts) + '</div></div>';
+            msgs.appendChild(div);
+            msgs.scrollTop = msgs.scrollHeight;
+        };
+
+        const buildTimelineFromRecords = (records) => {
+            const items = [];
+            (records || []).forEach(m => {
+                if (m.consultType === 0) {
+                    if (m.content && m.content.trim()) {
+                        items.push({
+                            key: 'ai-u-' + m.consultId,
+                            content: m.content,
+                            side: 'left',
+                            extraClass: '',
+                            time: m.consultTime,
+                            consultId: m.consultId
+                        });
+                    }
+                    if (m.reply && m.reply.trim()) {
+                        items.push({
+                            key: 'ai-r-' + m.consultId,
+                            content: m.reply,
+                            side: 'left',
+                            extraClass: 'ai',
+                            time: m.replyTime || m.consultTime,
+                            consultId: m.consultId
+                        });
+                    }
+                } else if (m.consultType === 1) {
+                    if (!m.content || !m.content.trim() || m.content.startsWith('【AI咨询对话记录】')) return;
+                    if (m.senderRole !== 0 && m.senderRole !== 1) return;
+                    items.push({
+                        key: 'm-' + m.consultId,
+                        content: m.content,
+                        side: m.senderRole === 0 ? 'left' : 'right',
+                        extraClass: '',
+                        time: m.consultTime || m.replyTime,
+                        consultId: m.consultId
+                    });
+                }
+            });
+            items.sort((a, b) => {
+                const ta = parseMsgTime(a.time).getTime();
+                const tb = parseMsgTime(b.time).getTime();
+                if (ta !== tb) return ta - tb;
+                if ((a.consultId || 0) !== (b.consultId || 0)) return (a.consultId || 0) - (b.consultId || 0);
+                if (String(a.key).includes('ai-u') && String(b.key).includes('ai-r')) return -1;
+                if (String(a.key).includes('ai-r') && String(b.key).includes('ai-u')) return 1;
+                return String(a.key).localeCompare(String(b.key));
+            });
+            return items;
+        };
+
+        const appendTimelineItems = (records) => {
+            const beforeCount = renderedMsgIds.size;
+            const timeline = buildTimelineFromRecords(records);
+            timeline.forEach(item => {
+                if (renderedMsgIds.has(item.key)) return;
+                addChatMsg(item.content, item.side, item.extraClass, item.time, item.key);
+                if (item.consultId) lastMsgId = Math.max(lastMsgId, item.consultId);
+            });
+            if (renderedMsgIds.size > beforeCount) loadConsults();
+        };
+
+        const fetchAllChatRecords = async () => {
+            const list = [];
+            try {
+                const chatRes = await fetch('/doctor/consultInfo/queryChatMessages?patientId=' + activePatientId + '&doctorId=' + activeDoctorId, {
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (chatRes.code === 1 && chatRes.content) list.push(...chatRes.content);
+            } catch (e) { console.error(e); }
+            try {
+                const aiRes = await fetch('/doctor/consultInfo/queryByPage?patientId=' + activePatientId + '&consultType=0&page=1&size=200', {
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (aiRes.code === 1 && aiRes.content && aiRes.content.content) list.push(...aiRes.content.content);
+            } catch (e) { console.error(e); }
+            return list;
+        };
+
+        const syncChatMessages = async () => {
+            if (!activePatientId || !activeDoctorId) return;
+            try {
+                const all = await fetchAllChatRecords();
+                appendTimelineItems(all);
+            } catch (e) {
+                console.error('同步消息失败', e);
+            }
+        };
+
+        // ========== 打开聊天 ==========
+        const openChat = async (patientId) => {
+            activePatientId = patientId;
+            activeDoctorId = myDoctorId;
+            resetChatRenderState();
+
+            $('chat-empty').style.display = 'none';
+            $('chat-area').style.display = 'flex';
+
+            $('chat-patient-name').textContent = getName(patientId);
+            $('chat-patient-id').textContent = '';
+
+            $('chat-messages').innerHTML = '';
+            renderList();
+
+            await syncChatMessages();
+
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(syncChatMessages, 3000);
+        };
+
+        // ========== 发送回复 ==========
+        $('send-reply').onclick = async () => {
+            const input = $('reply-input');
+            const text = input.value.trim();
+            if (!text || !activePatientId || !activeDoctorId) return;
+
+            input.value = '';
+            $('send-reply').disabled = true;
+
+            try {
+                await fetch('/doctor/consultInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: text,
+                        reply: '',
+                        consultStatus: 0,
+                        patientId: activePatientId,
+                        doctorId: activeDoctorId,
+                        consultType: 1,
+                        senderRole: 1,
+                        consultTime: new Date().toLocaleString('zh-CN', { hour12: false })
+                    }),
+                    credentials: 'include'
+                });
+                await syncChatMessages();
+                loadConsults();
+            } catch (e) {
+                alert('发送失败');
+            }
+
+            $('send-reply').disabled = false;
+        };
+
+        $('reply-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                $('send-reply').click();
+            }
+        });
+
+        // 初始化
+        (async () => {
+            if (!userId) { $('consult-list').innerHTML = '<div class="empty-side">未获取登录信息</div>'; return; }
+            await loadDoctorId();
+            if (!myDoctorId) { $('consult-list').innerHTML = '<div class="empty-side">未找到医生档案</div>'; return; }
+            await loadPatientNames();
+            await loadConsults();
+            // 定期刷新列表
+            setInterval(loadConsults, 10000);
+        })();
+    </script>
+</body>
+</html>

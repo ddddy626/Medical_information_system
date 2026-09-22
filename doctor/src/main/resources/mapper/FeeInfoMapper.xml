@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.FeeInfoMapper">
+
+    <resultMap id="feeInfoMap" type="com.dyh.doctor.domain.FeeInfoEntity">
+        <result column="fee_id" property="feeId" />
+        <result column="fee_type" property="feeType" />
+        <result column="amount" property="amount" />
+        <result column="pay_time" property="payTime" />
+        <result column="pay_status" property="payStatus" />
+        <result column="pay_method" property="payMethod" />
+        <result column="record_id" property="recordId" />
+        <result column="patient_id" property="patientId" />
+        <result column="doctor_id" property="doctorId" />
+        <result column="patient_name" property="patientName" />
+        <result column="record_no" property="recordNo" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            fee_info.fee_id, fee_info.fee_type, fee_info.amount, fee_info.pay_time, fee_info.pay_status, fee_info.pay_method, fee_info.record_id, fee_info.patient_id, fee_info.doctor_id,
+            p.patient_name, r.record_no
+        FROM fee_info
+        LEFT JOIN patient_info p ON fee_info.patient_id = p.user_id
+        LEFT JOIN record_info r ON fee_info.record_id = r.record_id
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="condition">
+        <if test="feeInfo.feeId != null">
+             and fee_info.fee_id = #{feeInfo.feeId}
+        </if>
+        <if test="feeInfo.feeType != null and feeInfo.feeType != ''">
+             and fee_info.fee_type LIKE concat('%', #{feeInfo.feeType}, '%')
+        </if>
+        <if test="feeInfo.payStatus != null">
+             and fee_info.pay_status = #{feeInfo.payStatus}
+        </if>
+        <if test="feeInfo.payMethod != null and feeInfo.payMethod != ''">
+             and fee_info.pay_method = #{feeInfo.payMethod}
+        </if>
+        <if test="feeInfo.recordId != null">
+             and fee_info.record_id = #{feeInfo.recordId}
+        </if>
+        <if test="feeInfo.patientId != null">
+             and fee_info.patient_id = #{feeInfo.patientId}
+        </if>
+        <if test="feeInfo.doctorId != null">
+             and fee_info.doctor_id = #{feeInfo.doctorId}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="feeInfoMap">
+        <include refid="baseSql"></include>
+        AND fee_info.fee_id = #{feeId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="feeInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by fee_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="feeId">
+        insert into fee_info(fee_type, amount, pay_time, pay_status, pay_method, record_id, patient_id, doctor_id)
+        values(#{feeType}, #{amount}, #{payTime}, #{payStatus}, #{payMethod}, #{recordId}, #{patientId}, #{doctorId})
+    </insert>
+
+    <update id="update">
+        update fee_info
+        <set>
+            <if test="feeType != null and feeType != ''">
+                fee_type = #{feeType},
+            </if>
+            <if test="amount != null">
+                amount = #{amount},
+            </if>
+            <if test="payTime != null and payTime != ''">
+                pay_time = #{payTime},
+            </if>
+            <if test="payStatus != null">
+                pay_status = #{payStatus},
+            </if>
+            <if test="payMethod != null and payMethod != ''">
+                pay_method = #{payMethod},
+            </if>
+            <if test="recordId != null">
+                record_id = #{recordId},
+            </if>
+            <if test="patientId != null">
+                patient_id = #{patientId},
+            </if>
+            <if test="doctorId != null">
+                doctor_id = #{doctorId},
+            </if>
+        </set>
+        WHERE fee_id = #{feeId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM fee_info WHERE fee_id = #{feeId}
+    </delete>
+
+    <update id="updatePayStatus">
+        UPDATE fee_info SET pay_status = #{payStatus} WHERE fee_id = #{feeId}
+    </update>
+
+    <update id="updatePendingByPatient">
+        UPDATE fee_info
+        SET pay_status = 1,
+            pay_method = #{payMethod},
+            pay_time = #{payTime}
+        WHERE patient_id = #{patientId} AND pay_status = 0
+    </update>
+</mapper>

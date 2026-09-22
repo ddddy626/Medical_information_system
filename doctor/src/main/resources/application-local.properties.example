@@ -1,0 +1,8 @@
+# 复制本文件为 application-local.properties，按本机 MySQL 修改后启用。
+# 注意：application.properties 中 spring.profiles.active 默认为 local，
+# 因此该文件会被 Spring Boot 自动加载，并覆盖主配置中的同名项（本文件已被 .gitignore 排除，不会提交）。
+# 若不想使用本文件，也可把下面几行直接写进 application.properties，或用环境变量覆盖。
+#
+# spring.datasource.username=root
+# spring.datasource.password=你的MySQL密码
+# spring.datasource.url=jdbc:mysql://localhost:3306/hospital_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true

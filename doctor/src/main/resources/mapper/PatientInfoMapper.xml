@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.PatientInfoMapper">
+
+    <resultMap id="patientInfoMap" type="com.dyh.doctor.domain.PatientInfoEntity">
+        <result column="patient_id" property="patientId" />
+        <result column="id_card" property="idCard" />
+        <result column="gender" property="gender" />
+        <result column="age" property="age" />
+        <result column="address" property="address" />
+        <result column="history" property="history" />
+        <result column="create_time" property="createTime" />
+        <result column="user_id" property="userId" />
+        <result column="patient_name" property="patientName" />
+        <result column="phone" property="phone" />
+        <result column="marriage" property="marriage" />
+        <result column="allergy" property="allergy" />
+        <result column="height" property="height" />
+        <result column="weight" property="weight" />
+        <result column="blood_pressure" property="bloodPressure" />
+        <result column="blood_sugar" property="bloodSugar" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            patient_info.patient_id, patient_info.id_card, patient_info.gender, patient_info.age, patient_info.address, patient_info.history, patient_info.create_time, patient_info.user_id,
+            patient_info.patient_name, patient_info.phone, patient_info.marriage, patient_info.allergy, patient_info.height, patient_info.weight,
+            patient_info.blood_pressure, patient_info.blood_sugar
+        FROM patient_info
+        WHERE 1 = 1 
+    </sql>
+
+    <sql id="condition">
+        <if test="patientInfo.patientId != null">
+             and patient_info.patient_id = #{patientInfo.patientId}
+        </if>
+        <if test="patientInfo.idCard != null and patientInfo.idCard != ''">
+             and patient_info.id_card LIKE concat('%', #{patientInfo.idCard}, '%')
+        </if>
+        <if test="patientInfo.gender != null and patientInfo.gender != ''">
+             and patient_info.gender LIKE concat('%', #{patientInfo.gender}, '%')
+        </if>
+        <if test="patientInfo.age != null">
+             and patient_info.age = #{patientInfo.age}
+        </if>
+        <if test="patientInfo.address != null and patientInfo.address != ''">
+             and patient_info.address LIKE concat('%', #{patientInfo.address}, '%')
+        </if>
+        <if test="patientInfo.history != null and patientInfo.history != ''">
+             and patient_info.history LIKE concat('%', #{patientInfo.history}, '%')
+        </if>
+        <if test="patientInfo.createTime != null and patientInfo.createTime != ''">
+             and patient_info.create_time LIKE concat('%', #{patientInfo.createTime}, '%')
+        </if>
+        <if test="patientInfo.userId != null">
+             and patient_info.user_id = #{patientInfo.userId}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="patientInfoMap">
+        <include refid="baseSql"></include>
+        AND patient_info.patient_id = #{patientId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="patientInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by patient_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="patientId">
+        insert into patient_info(id_card, gender, age, address, history, create_time, user_id, patient_name, phone, marriage, allergy, height, weight, blood_pressure, blood_sugar)
+        values(#{idCard}, #{gender}, #{age}, #{address}, #{history}, #{createTime}, #{userId}, #{patientName}, #{phone}, #{marriage}, #{allergy}, #{height}, #{weight}, #{bloodPressure}, #{bloodSugar})
+    </insert>
+
+    <update id="update">
+        update patient_info
+        <set>
+            <if test="gender != null and gender != ''">
+                gender = #{gender},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="address != null and address != ''">
+                address = #{address},
+            </if>
+            <if test="history != null and history != ''">
+                history = #{history},
+            </if>
+            <if test="createTime != null and createTime != ''">
+                create_time = #{createTime},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="patientName != null and patientName != ''">
+                patient_name = #{patientName},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="marriage != null and marriage != ''">
+                marriage = #{marriage},
+            </if>
+            <if test="allergy != null and allergy != ''">
+                allergy = #{allergy},
+            </if>
+            <if test="height != null">
+                height = #{height},
+            </if>
+            <if test="weight != null">
+                weight = #{weight},
+            </if>
+            <if test="bloodPressure != null">
+                blood_pressure = #{bloodPressure},
+            </if>
+            <if test="bloodSugar != null">
+                blood_sugar = #{bloodSugar},
+            </if>
+        </set>
+        WHERE patient_id = #{patientId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM patient_info WHERE patient_id = #{patientId}
+    </delete>
+</mapper>
+

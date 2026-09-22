@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医生工作台 - 医疗诊疗系统</title>
+    <link rel="stylesheet" href="css/med-tech.css?v=uiplan2">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <div class="brand">
+                <span class="brand-tag">CLINICAL COMMAND</span>
+                <h1 class="nav-active">医生工作台</h1>
+                <p>接诊管理、咨询回复、病历书写与医患协同</p>
+            </div>
+            <div class="user-info">
+                <div id="weather-tips" class="home-weather-chip-wrap" aria-live="polite"></div>
+                <div class="avatar-dot" id="avatar-dot">医</div>
+                <span class="user-name" id="user-name">医生</span>
+                <button class="logout-btn" id="logout-btn">退出登录</button>
+            </div>
+        </div>
+
+        <section class="hero-panel">
+            <div class="hero-copy">
+                <span class="brand-tag">SMART TRIAGE DESK</span>
+                <h2>把预约、咨询和病历变成可执行的临床队列</h2>
+                <p>工作台聚合待接诊患者、在线咨询、患者留言与病历记录。医生可以优先处理今日预约和高关注消息，减少信息分散，提高门诊接诊效率。</p>
+                <div class="hero-metrics">
+                    <div class="metric"><strong>队列</strong><span>今日预约实时聚合</span></div>
+                    <div class="metric"><strong>协同</strong><span>医患留言闭环</span></div>
+                    <div class="metric"><strong>病历</strong><span>诊疗记录快速维护</span></div>
+                </div>
+            </div>
+            <div class="vital-orb"><div class="vital-core">CARE<br>FLOW</div></div>
+        </section>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-kicker">TODAY</div><div class="stat-value" id="stat-appoint">0</div><div class="stat-label">今日预约</div><div class="stat-foot">过滤过期预约，聚焦当前队列</div></div>
+            <div class="stat-card"><div class="stat-kicker">CONSULT</div><div class="stat-value" id="stat-consult">0</div><div class="stat-label">待回复咨询</div><div class="stat-foot">按患者最新人工消息聚合</div></div>
+            <div class="stat-card"><div class="stat-kicker">MESSAGE</div><div class="stat-value" id="stat-message">0</div><div class="stat-label">待回复留言</div><div class="stat-foot">支持医生主动发送随访留言</div></div>
+            <div class="stat-card"><div class="stat-kicker">PATIENT</div><div class="stat-value" id="stat-patient">0</div><div class="stat-label">患者档案</div><div class="stat-foot">用于留言对象和数据统计</div></div>
+            <div class="stat-card"><div class="stat-kicker">RECORD</div><div class="stat-value" id="stat-record">0</div><div class="stat-label">病历记录</div><div class="stat-foot">便于诊疗追踪和复诊回看</div></div>
+        </div>
+
+        <div class="main-grid">
+            <div>
+                <div class="card"><h3>今日预约挂号</h3><div id="appoint-list"><div class="empty-state"><p>暂无今日预约</p></div></div></div>
+                <div class="card"><h3>待回复在线咨询</h3><div id="consult-list" style="max-height: 340px; overflow-y: auto;"><div class="empty-state"><p>暂无待回复的咨询</p></div></div></div>
+                <div class="card"><h3>患者留言</h3><div id="message-list"><div class="empty-state"><p>暂无患者留言</p></div></div></div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h3>快捷操作</h3>
+                    <div class="action-list">
+                        <div class="action-item" id="action-appoint"><div class="action-icon">AP</div><div class="action-text"><h4>预约管理</h4><p>查看和管理预约记录</p></div></div>
+                        <div class="action-item" id="action-record"><div class="action-icon">MR</div><div class="action-text"><h4>病历管理</h4><p>编写和维护患者病历</p></div></div>
+                        <div class="action-item" id="action-consult"><div class="action-icon">AI</div><div class="action-text"><h4>咨询管理</h4><p>查看和回复在线咨询</p></div></div>
+                        <div class="action-item" id="action-message"><div class="action-icon">MSG</div><div class="action-text"><h4>留言管理</h4><p>查看和回复患者留言</p></div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>临床辅助提示</h3>
+                    <div class="insight-grid" style="grid-template-columns: 1fr;">
+                        <div class="insight"><strong>优先级建议</strong><span>先处理今日预约与最新人工咨询，再处理普通留言，保证高时效医疗任务优先。</span></div>
+                        <div class="insight"><strong>病历完整性</strong><span>接诊后建议补充主诉、诊断、治疗方案和随访建议，便于患者复诊。</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>发送留言给患者</h3>
+                    <form id="send-message-form">
+                        <div class="form-group"><label for="message-patient">选择患者</label><select id="message-patient" required><option value="">请选择患者</option></select></div>
+                        <div class="form-group"><label for="message-content">留言内容</label><textarea id="message-content" placeholder="请输入要发送给患者的随访提醒、复诊建议或用药说明..." required></textarea></div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">发送留言</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/weather-tips.js?v=perf1"></script>
+    <script src="js/login-announcements.js?v=1"></script>
+    <script src="js/ui-enhance.js?v=perf1"></script>
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const esc = (value) => String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get("userId") || sessionStorage.getItem("doctorUserId");
+        let userName = urlParams.get("userName") || sessionStorage.getItem("doctorUserName");
+        let myDoctorId = null;
+
+        if (userName && userName !== "null" && userName !== "undefined") {
+            $("user-name").textContent = userName;
+            $("avatar-dot").textContent = (userName.charAt(0) || "医").toUpperCase();
+        }
+
+        $("logout-btn").addEventListener("click", () => {
+            fetch("/doctor/userInfo/logout", { method: "POST", credentials: "include" }).finally(() => window.location.href = "index.html");
+        });
+
+        const go = (page) => {
+            window.location.href = `${page}?userId=${encodeURIComponent(userId || "")}&userName=${encodeURIComponent(userName || "")}`;
+        };
+        $("action-record").addEventListener("click", () => go("doctor-medical-record.html"));
+        $("action-appoint").addEventListener("click", () => go("doctor-appointment.html"));
+        $("action-consult").addEventListener("click", () => go("doctor-consult.html"));
+        $("action-message").addEventListener("click", () => go("doctor-message.html"));
+
+        const loadMyDoctorId = async () => {
+            try {
+                const res = await fetch("/doctor/doctorInfo/queryByPage?userId=" + userId + "&page=1&size=1", { credentials: "include" }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length) myDoctorId = res.content.content[0].doctorId;
+            } catch (error) { console.error("加载医生 ID 失败:", error); }
+        };
+
+        const parseDateTime = (str) => {
+            if (!str) return null;
+            const d = new Date(String(str).replace(/-/g, "/"));
+            return isNaN(d.getTime()) ? null : d;
+        };
+        const isTodayAppointment = (app) => {
+            const d = parseDateTime(app.visitTime || app.regTime);
+            if (!d) return true;
+            const now = new Date();
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+        };
+
+        const loadAppointments = async () => {
+            try {
+                const queryId = myDoctorId || userId;
+                const res = await fetch(`/doctor/registerInfo/queryByPage?doctorId=${queryId}&page=1&size=20`, { credentials: "include" }).then(r => r.json());
+                const rows = res.code === 1 && res.content && res.content.content ? res.content.content : [];
+                const appointments = rows.filter(a => a.regStatus === 0 && isTodayAppointment(a));
+                $("stat-appoint").textContent = appointments.length;
+                $("appoint-list").innerHTML = appointments.length ? appointments.slice(0, 5).map(app => `
+                    <div class="list-item">
+                        <div class="item-header"><span class="item-title">患者 ${esc(app.patientName || "#" + app.patientId)}</span><span class="item-time">${esc(app.visitTime || app.regTime || "")}</span></div>
+                        <div class="item-meta"><span>科室：${esc(app.deptName || app.deptId || "-")}</span><span>医生：${esc(app.doctorName || app.doctorId || "-")}</span></div>
+                    </div>`).join("") : '<div class="empty-state"><p>暂无今日预约</p></div>';
+            } catch (error) { console.error("加载预约失败:", error); }
+        };
+
+        const loadPatientNameMap = async () => {
+            const map = {};
+            try {
+                const [pRes, uRes] = await Promise.all([
+                    fetch("/doctor/patientInfo/queryByPage?page=1&size=999", { credentials: "include" }).then(r => r.json()),
+                    fetch("/doctor/userInfo/queryByPage?page=1&size=999", { credentials: "include" }).then(r => r.json())
+                ]);
+                const patients = pRes.code === 1 && pRes.content && pRes.content.content ? pRes.content.content : [];
+                patients.forEach((p) => {
+                    const label = p.patientName || "";
+                    if (p.patientId != null) map[p.patientId] = label;
+                    if (p.userId != null) map[p.userId] = label || map[p.userId] || "";
+                });
+                const users = uRes.code === 1 && uRes.content && uRes.content.content ? uRes.content.content : [];
+                users.forEach((u) => {
+                    if (u.userId == null) return;
+                    // 优先用户名，其次真实姓名 / 患者姓名
+                    const label = u.username || u.realName || map[u.userId] || "";
+                    if (label) map[u.userId] = label;
+                });
+            } catch (e) {
+                console.error("加载患者名称失败", e);
+            }
+            return map;
+        };
+
+        const isHumanChatRow = (c) =>
+            c && c.consultType === 1 && c.content && String(c.content).trim() && !String(c.content).startsWith("【AI咨询对话记录】");
+
+        const patientHasPendingReply = (rows, patientId) => {
+            const list = rows.filter((c) => c.patientId === patientId && c.consultType === 1);
+            const patientMsgs = list.filter((c) => c.senderRole === 0 && isHumanChatRow(c));
+            const doctorMsgs = list.filter((c) => c.senderRole === 1 && isHumanChatRow(c));
+            if (patientMsgs.length === 0 && doctorMsgs.length === 0) {
+                const legacy = list.find((c) => isHumanChatRow(c));
+                return legacy ? !legacy.reply : false;
+            }
+            const lastPatientMsg = patientMsgs.length ? Math.max(...patientMsgs.map((m) => m.consultId || 0)) : 0;
+            const lastDoctorMsg = doctorMsgs.length ? Math.max(...doctorMsgs.map((m) => m.consultId || 0)) : 0;
+            return lastPatientMsg > lastDoctorMsg;
+        };
+
+        const loadConsults = async () => {
+            try {
+                if (!myDoctorId) return;
+                const [res, nameMap] = await Promise.all([
+                    fetch("/doctor/consultInfo/queryByDoctorId?doctorId=" + myDoctorId, { credentials: "include" }).then(r => r.json()),
+                    loadPatientNameMap()
+                ]);
+                const all = res.code === 1 && res.content ? res.content : [];
+                // 每个患者只保留最新一条人工咨询
+                const byPatient = {};
+                all.forEach((c) => {
+                    if (!isHumanChatRow(c) || c.patientId == null) return;
+                    const key = c.patientId;
+                    const prev = byPatient[key];
+                    if (!prev || (c.consultId || 0) > (prev.consultId || 0)) byPatient[key] = c;
+                });
+                const latest = Object.values(byPatient)
+                    .filter((c) => patientHasPendingReply(all, c.patientId))
+                    .sort((a, b) => (b.consultId || 0) - (a.consultId || 0));
+
+                $("stat-consult").textContent = latest.length;
+                $("consult-list").innerHTML = latest.length ? latest.slice(0, 8).map((c) => {
+                    const displayName = nameMap[c.patientId] || "患者";
+                    return `
+                    <div class="list-item">
+                        <div class="item-header"><span class="item-title">${esc(displayName)} <span class="badge">待回复</span></span><span class="item-time">${esc(c.consultTime || "")}</span></div>
+                        <div class="item-content">${esc(c.content)}</div>
+                        <button class="action-btn action-btn-primary" onclick="location.href='doctor-consult.html?userId=${encodeURIComponent(userId || "")}&userName=${encodeURIComponent(userName || "")}'">去回复</button>
+                    </div>`;
+                }).join("") : '<div class="empty-state"><p>暂无待回复的咨询</p></div>';
+            } catch (error) { console.error("加载咨询失败:", error); }
+        };
+
+        const loadPatients = async () => {
+            try {
+                const res = await fetch("/doctor/patientInfo/queryByPage?page=1&size=999", { credentials: "include" }).then(r => r.json());
+                const patients = res.code === 1 && res.content && res.content.content ? res.content.content : [];
+                $("stat-patient").textContent = patients.length;
+                $("message-patient").innerHTML = '<option value="">请选择患者</option>' + patients.filter(p => p.userId).map(p => `<option value="${Number(p.userId)}">${esc(p.patientName || "患者")}</option>`).join("");
+            } catch (error) { console.error("加载患者失败", error); }
+        };
+
+        const loadMessages = async () => {
+            try {
+                if (!myDoctorId) return;
+                const [res, nameMap] = await Promise.all([
+                    fetch(`/doctor/messageInfo/queryByPage?receiverId=${myDoctorId}&page=1&size=100`, { credentials: "include" }).then(r => r.json()),
+                    loadPatientNameMap()
+                ]);
+                const messages = res.code === 1 && res.content && res.content.content ? res.content.content : [];
+                // 每个患者只保留最新一条待回复留言
+                const byPatient = {};
+                messages.filter((m) => !m.replyContent && m.senderId != null).forEach((m) => {
+                    const key = m.senderId;
+                    const prev = byPatient[key];
+                    const mId = m.msgId || 0;
+                    const pId = prev ? (prev.msgId || 0) : -1;
+                    if (!prev || mId > pId) byPatient[key] = m;
+                });
+                const latest = Object.values(byPatient).sort((a, b) => (b.msgId || 0) - (a.msgId || 0));
+                $("stat-message").textContent = latest.length;
+                $("message-list").innerHTML = latest.length ? latest.slice(0, 8).map((m) => {
+                    const displayName = nameMap[m.senderId] || "患者";
+                    return `
+                    <div class="list-item">
+                        <div class="item-header"><span class="item-title">${esc(displayName)} <span class="badge">待回复</span></span><span class="item-time">${esc(m.msgTime || "")}</span></div>
+                        <div class="item-content">${esc(m.msgContent)}</div>
+                    </div>`;
+                }).join("") : '<div class="empty-state"><p>暂无患者留言</p></div>';
+            } catch (error) { console.error("加载留言失败:", error); }
+        };
+
+        const loadRecords = async () => {
+            try {
+                const queryId = myDoctorId || userId;
+                const res = await fetch(`/doctor/recordInfo/queryByPage?doctorId=${queryId}&page=1&size=1`, { credentials: "include" }).then(r => r.json());
+                if (res.code === 1 && res.content) $("stat-record").textContent = res.content.totalElements || 0;
+            } catch (e) { console.error("加载病历统计失败:", e); }
+        };
+
+        $("send-message-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const receiverUserId = $("message-patient").value;
+            const content = $("message-content").value.trim();
+            if (!receiverUserId || !content || !myDoctorId) return alert("请选择患者并填写留言内容");
+            const res = await fetch("/doctor/messageInfo/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ msgContent: content, senderId: myDoctorId, receiverId: parseInt(receiverUserId, 10), msgTime: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"), msgType: 2 }),
+                credentials: "include"
+            }).then(r => r.json());
+            if (res.code === 1) {
+                alert("留言发送成功");
+                $("message-content").value = "";
+                loadMessages();
+            } else {
+                alert(res.msg || "发送失败");
+            }
+        });
+
+        loadMyDoctorId().then(() => {
+            return Promise.all([
+                loadAppointments(),
+                loadConsults(),
+                loadMessages(),
+                loadPatients(),
+                loadRecords()
+            ]);
+        }).then(() => {
+            if (window.UiEnhance) UiEnhance.enhance(document);
+        });
+        if (window.WeatherTips) {
+            WeatherTips.mount("#weather-tips", { compact: true });
+        }
+        if (window.LoginAnnouncements) {
+            LoginAnnouncements.showIfPending();
+        }
+        if (window.UiEnhance) {
+            setTimeout(() => UiEnhance.enhance(document), 400);
+        }
+    </script>
+</body>
+</html>

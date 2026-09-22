@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约管理 - 医生工作台</title>
+    <style>
+        :root {
+            --primary-color: #ff7043;
+            --success-color: #1b8f46;
+            --warning-color: #d65b00;
+            --danger-color: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+
+        body.med-tech-page {
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        body.med-tech-page .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(12, 18, 36, 0.96);
+            backdrop-filter: none;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(78, 205, 196, 0.28);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #7ee8e0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: #f3f4f6;
+            color: #223656;
+        }
+
+        .card {
+            background: rgba(12, 18, 36, 0.96);
+            backdrop-filter: none;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 18px;
+            color: #223656;
+            margin: 0;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            color: #f0f4f8;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: rgba(78, 205, 196, 0.22);
+            color: #7ee8e0;
+            border-color: #4ecdc4;
+        }
+
+        .filter-btn:hover {
+            background: rgba(78, 205, 196, 0.12);
+        }
+
+        .filter-btn.active:hover {
+            background: #f59e0b;
+        }
+
+        .appointment-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .appointment-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .appointment-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(255, 112, 67, 0.1);
+        }
+
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .patient-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .patient-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .patient-detail h4 {
+            margin: 0 0 4px;
+            font-size: 16px;
+            color: #223656;
+        }
+
+        .patient-detail p {
+            margin: 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-accepted {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-completed {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .appointment-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .info-item svg {
+            width: 16px;
+            height: 16px;
+            color: #9ca3af;
+        }
+
+        .info-label {
+            color: #9ca3af;
+        }
+
+        .info-value {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .appointment-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .fee-info {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .fee-amount {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .page-btn.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .back-btn {
+            padding: 6px 14px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover { background: #e5e7eb; }
+
+        .logout-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 100;
+            padding: 30px 16px;
+            overflow-y: auto;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: rgba(12, 18, 36, 0.98);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 680px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal h3 {
+            margin: 0 0 20px;
+            font-size: 18px;
+            color: #223656;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #374151;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+
+        /* 药品选择区域 */
+        .med-section { margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+        .med-section h4 { margin: 0 0 12px; font-size: 15px; color: #223656; }
+        .med-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .med-add-row select { flex: 2; }
+        .med-add-row input { width: 70px; }
+        .med-add-row button { padding: 8px 14px; background: var(--success-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+        .med-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px; }
+        .med-table th { background: #f9fafb; padding: 8px; text-align: left; font-weight: 500; }
+        .med-table td { padding: 8px; border-bottom: 1px solid #f3f4f6; }
+        .med-table .remove-btn { color: #dc2626; cursor: pointer; background: none; border: none; font-size: 13px; }
+        .med-total { text-align: right; font-size: 15px; font-weight: 600; color: var(--primary-color); margin-bottom: 16px; }
+        .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <div class="brand" style="display:flex;align-items:center;gap:12px;">
+                <button class="back-btn" id="back-btn">返回工作台</button>
+                <h1 class="nav-active">📅 预约管理</h1>
+            </div>
+            <div class="user-info">
+                <span id="user-name">医生</span>
+                <div class="avatar" id="avatar-dot">医</div>
+                <button class="logout-btn" id="logout-btn">退出登录</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">预约列表</h2>
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-status="all" onclick="filterAppointments('all')">全部</button>
+                    <button class="filter-btn" data-status="0" onclick="filterAppointments('0')">待接诊</button>
+                    <button class="filter-btn" data-status="1" onclick="filterAppointments('1')">已接诊</button>
+                </div>
+            </div>
+
+            <div id="appointment-list" class="appointment-list">
+                <div class="empty-state">
+                    <p>暂无预约记录</p>
+                </div>
+            </div>
+
+            <div class="pagination" id="pagination">
+            </div>
+        </div>
+    </div>
+
+    <!-- 写病历模态框 -->
+    <div class="modal-overlay" id="record-modal">
+        <div class="modal">
+            <h3>📝 编写病历</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>患者</label>
+                    <input type="text" id="rec-patient" readonly>
+                </div>
+                <div class="form-group">
+                    <label>挂号编号</label>
+                    <input type="text" id="rec-regno" readonly>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>主诉</label>
+                <input type="text" id="rec-complaint" placeholder="患者主要症状描述">
+            </div>
+            <div class="form-group">
+                <label>诊断结果</label>
+                <input type="text" id="rec-diagnosis" placeholder="请输入诊断结果" required>
+            </div>
+            <div class="form-group">
+                <label>治疗建议</label>
+                <textarea id="rec-treatment" placeholder="治疗方案、注意事项等"></textarea>
+            </div>
+
+            <div class="med-section">
+                <h4>💊 开具处方</h4>
+                <div class="med-add-row">
+                    <select id="med-select"><option value="">请选择药品</option></select>
+                    <input type="number" id="med-qty" value="1" min="1" placeholder="数量">
+                    <button onclick="addMedicine()">添加</button>
+                </div>
+                <table class="med-table" id="med-table">
+                    <thead><tr><th>药品名称</th><th>规格</th><th>单价</th><th>数量</th><th>小计</th><th>操作</th></tr></thead>
+                    <tbody id="med-tbody"></tbody>
+                </table>
+                <div class="med-total" id="med-total">药品合计：¥0.00</div>
+            </div>
+
+            <div class="check-section">
+                <h4>🔬 开具检查</h4>
+                <div class="check-add-row">
+                    <select id="check-select"><option value="">请选择检查项目</option></select>
+                    <input type="number" id="check-fee" value="0" min="0" step="0.01" placeholder="费用">
+                    <button onclick="addCheck()">添加</button>
+                </div>
+                <table class="check-table" id="check-table">
+                    <thead><tr><th>检查项目</th><th>费用</th><th>操作</th></tr></thead>
+                    <tbody id="check-tbody"></tbody>
+                </table>
+                <div class="check-total" id="check-total">检查费合计：¥0.00</div>
+                <div class="grand-total" id="grand-total">总计：¥0.00</div>
+            </div>
+
+            <div class="modal-btns">
+                <button class="btn btn-secondary" onclick="closeRecordModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitRecord()">保存病历</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId');
+        const userName = urlParams.get('userName');
+
+        let currentPage = 1;
+        let currentStatus = 'all';
+        let totalPages = 1;
+        let doctorId = null;
+
+        const initDoctorId = async () => {
+            try {
+                const res = await fetch(`/doctor/doctorInfo/queryByPage?userId=${userId}&page=1&size=1`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+                console.log('doctorInfo查询结果:', res, 'userId:', userId);
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    doctorId = res.content.content[0].doctorId;
+                    console.log('获取到doctorId:', doctorId);
+                } else {
+                    console.warn('未找到医生信息, userId:', userId);
+                }
+            } catch (e) {
+                console.error('获取doctorId失败:', e);
+            }
+        };
+
+        if (userName) {
+            $("user-name").textContent = userName;
+            $("avatar-dot").textContent = (userName.charAt(0) || '医').toUpperCase();
+        }
+
+        $("back-btn").addEventListener("click", () => {
+            window.location.href = `doctor-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
+        });
+
+        $("logout-btn").addEventListener("click", () => {
+            fetch('/doctor/userInfo/logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).finally(() => {
+                window.location.href = 'index.html';
+            });
+        });
+
+        let existingRecords = {}; // registerId -> recordInfo
+
+        const loadAppointments = async (page = 1, status = 'all') => {
+            if (!doctorId) {
+                $("appointment-list").innerHTML = '<div class="empty-state"><p>未找到医生信息</p></div>';
+                return;
+            }
+            try {
+                let url = `/doctor/registerInfo/queryByPage?doctorId=${doctorId}&page=${page}&size=10`;
+                if (status !== 'all') {
+                    url += `&regStatus=${status}`;
+                }
+
+                const res = await fetch(url, {
+                    credentials: 'include'
+                }).then(r => r.json());
+                console.log('挂号列表查询:', url, '结果:', res);
+
+                if (res.code === 1 && res.content) {
+                    const appointments = res.content.content || [];
+                    totalPages = res.content.totalPages || 1;
+                    currentPage = page;
+                    currentStatus = status;
+
+                    // 查询该医生所有病历，建立 registerId -> record 映射
+                    existingRecords = {};
+                    try {
+                        const recRes = await fetch(`/doctor/recordInfo/queryByPage?doctorId=${doctorId}&page=1&size=200`, { credentials: 'include' }).then(r => r.json());
+                        if (recRes.code === 1 && recRes.content && recRes.content.content) {
+                            recRes.content.content.forEach(r => {
+                                if (r.registerId) existingRecords[r.registerId] = r;
+                            });
+                        }
+                    } catch (e) { console.error('查询病历映射失败', e); }
+
+                    renderAppointments(appointments);
+                    renderPagination();
+                }
+            } catch (error) {
+                console.error('加载预约失败:', error);
+            }
+        };
+
+        const renderAppointments = (appointments) => {
+            const container = $("appointment-list");
+
+            if (appointments.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无预约记录</p></div>';
+                return;
+            }
+
+            container.innerHTML = appointments.map(app => {
+                const statusText = app.regStatus === 0 ? '待接诊' : app.regStatus === 1 ? '已接诊' : '已完成';
+                const statusClass = app.regStatus === 0 ? 'status-pending' : app.regStatus === 1 ? 'status-accepted' : 'status-completed';
+                const patientName = app.patientName || '患者#' + app.patientId;
+                const initial = patientName.charAt(0);
+
+                return `
+                    <div class="appointment-item ${statusClass}" data-reg-status="${app.regStatus}">
+                        <div class="appointment-header">
+                            <div class="patient-info">
+                                <div class="patient-avatar">${initial}</div>
+                                <div class="patient-detail">
+                                    <h4>${patientName}</h4>
+                                    <p>${app.gender === '1' || app.gender === '男' ? '男' : '女'} | ${app.age || '-'}岁 | ${app.phone || '-'}</p>
+                                </div>
+                            </div>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+
+                        <div class="appointment-body">
+                            <div class="info-item">
+                                <span class="info-label">科室:</span>
+                                <span class="info-value">${app.deptName || app.deptId || '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">预约时间:</span>
+                                <span class="info-value">${app.visitTime || app.regTime || '-'}</span>
+                                <span class="info-countdown" data-time="${app.visitTime || app.regTime}"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">挂号编号:</span>
+                                <span class="info-value">${app.regNo || '-'}</span>
+                            </div>
+                        </div>
+
+                        <div class="appointment-footer">
+                            <div class="fee-info">
+                                挂号费用: <span class="fee-amount">¥${app.fee || 0}</span>
+                            </div>
+                            <div class="action-buttons">
+                                ${app.regStatus === 0 ? `
+                                    <button class="btn btn-primary" onclick="acceptAppointment(${app.registerId})">接诊</button>
+                                ` : (existingRecords[app.registerId] ? `
+                                    <button class="btn btn-secondary" disabled style="opacity:0.5;cursor:not-allowed;">已完成</button>
+                                    <button class="btn btn-secondary" style="background:#2b78d6;color:#fff;" onclick="openEditRecordModal(${app.registerId})">编辑病历</button>
+                                ` : `
+                                    <button class="btn btn-secondary" style="background:#1b8f46;color:#fff;" onclick="openRecordModal(${app.registerId}, ${app.patientId}, ${app.deptId}, '${app.patientName || '患者#' + app.patientId}', '${app.regNo || ''}')">写病历</button>
+                                `)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            updateCountdowns();
+        };
+
+        const renderPagination = () => {
+            const container = $("pagination");
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            if (currentPage > 1) {
+                html += `<button class="page-btn" onclick="loadAppointments(${currentPage - 1}, '${currentStatus}')">上一页</button>`;
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="loadAppointments(${i}, '${currentStatus}')">${i}</button>`;
+            }
+
+            if (currentPage < totalPages) {
+                html += `<button class="page-btn" onclick="loadAppointments(${currentPage + 1}, '${currentStatus}')">下一页</button>`;
+            }
+
+            container.innerHTML = html;
+        };
+
+        const filterAppointments = (status) => {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.filter-btn[data-status="${status}"]`).classList.add('active');
+            loadAppointments(1, status);
+        };
+
+        const acceptAppointment = (registerId) => {
+            if (confirm('确认接诊此患者？')) {
+                fetch('/doctor/registerInfo/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        registerId: registerId,
+                        regStatus: 1
+                    }),
+                    credentials: 'include'
+                }).then(r => r.json()).then(res => {
+                    if (res.code === 1) {
+                        alert('接诊成功');
+                        loadAppointments(currentPage, currentStatus);
+                    } else {
+                        alert(res.msg || '接诊失败');
+                    }
+                }).catch(() => {
+                    alert('网络错误');
+                });
+            }
+        };
+
+        // === 写病历功能 ===
+        let selectedMedicines = [];
+        let allMedicines = [];
+        let selectedChecks = [];
+        let allChecks = [];
+        let currentRecord = {};
+
+        const loadMedicines = async () => {
+            try {
+                const res = await fetch('/doctor/medicineInfo/queryByPage?page=1&size=999&status=1', { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content) {
+                    allMedicines = res.content.content;
+                    const select = $("med-select");
+                    const groups = {};
+                    allMedicines.forEach(m => {
+                        const type = m.medType || '其他';
+                        if (!groups[type]) groups[type] = [];
+                        groups[type].push(m);
+                    });
+                    let html = '<option value="">请选择药品</option>';
+                    Object.keys(groups).forEach(type => {
+                        html += `<optgroup label="${type}">`;
+                        groups[type].forEach(m => {
+                            html += `<option value="${m.id}">${m.medName} (${m.spec}) ¥${m.price}</option>`;
+                        });
+                        html += '</optgroup>';
+                    });
+                    select.innerHTML = html;
+                }
+            } catch (e) { console.error('加载药品失败:', e); }
+        };
+
+        const addMedicine = () => {
+            const select = $("med-select");
+            const medId = parseInt(select.value);
+            const qty = parseInt($("med-qty").value) || 1;
+            if (!medId) { alert('请选择药品'); return; }
+            if (selectedMedicines.find(m => m.id === medId)) { alert('该药品已添加'); return; }
+            const med = allMedicines.find(m => m.id === medId);
+            if (!med) return;
+            selectedMedicines.push({ id: med.id, medName: med.medName, spec: med.spec, price: med.price, quantity: qty });
+            renderMedTable();
+            select.value = '';
+            $("med-qty").value = '1';
+        };
+
+        const removeMedicine = (idx) => {
+            selectedMedicines.splice(idx, 1);
+            renderMedTable();
+            updateGrandTotal();
+        };
+
+        const renderMedTable = () => {
+            const tbody = $("med-tbody");
+            let total = 0;
+            tbody.innerHTML = selectedMedicines.map((m, i) => {
+                const sub = m.price * m.quantity;
+                total += sub;
+                return `<tr><td>${m.medName}</td><td>${m.spec || '-'}</td><td>¥${m.price}</td><td>${m.quantity}</td><td>¥${sub.toFixed(2)}</td><td><button class="remove-btn" onclick="removeMedicine(${i})">删除</button></td></tr>`;
+            }).join('');
+            $("med-total").textContent = '药品合计：¥' + total.toFixed(2);
+            updateGrandTotal();
+        };
+
+        // === 检查项目功能 ===
+        const checkTypes = [
+            { name: '血常规', fee: 30 }, { name: '尿常规', fee: 25 }, { name: '肝功能', fee: 70 },
+            { name: '肾功能', fee: 70 }, { name: '血糖', fee: 20 }, { name: '血脂', fee: 40 },
+            { name: '心电图', fee: 50 }, { name: 'B超', fee: 60 }, { name: '胸片', fee: 80 },
+            { name: 'CT', fee: 200 }, { name: 'MRI', fee: 500 }, { name: '血型鉴定', fee: 30 },
+            { name: '凝血功能', fee: 60 }, { name: '甲状腺功能', fee: 80 }, { name: '肿瘤标志物', fee: 120 },
+            { name: '血气分析', fee: 50 }, { name: '便常规', fee: 15 }, { name: '电解质', fee: 35 }
+        ];
+
+        const loadChecks = () => {
+            const select = $("check-select");
+            let html = '<option value="">请选择检查项目</option>';
+            checkTypes.forEach((c, i) => {
+                html += `<option value="${i}" data-fee="${c.fee}">${c.name} (¥${c.fee})</option>`;
+            });
+            select.innerHTML = html;
+        };
+
+        $("check-select").addEventListener("change", (e) => {
+            const opt = e.target.options[e.target.selectedIndex];
+            if (opt && opt.dataset.fee) $("check-fee").value = opt.dataset.fee;
+        });
+
+        const addCheck = () => {
+            const select = $("check-select");
+            const idx = parseInt(select.value);
+            if (isNaN(idx)) { alert('请选择检查项目'); return; }
+            const ct = checkTypes[idx];
+            const fee = parseFloat($("check-fee").value) || ct.fee;
+            if (selectedChecks.find(c => c.name === ct.name)) { alert('该检查项目已添加'); return; }
+            selectedChecks.push({ name: ct.name, checkFee: fee });
+            renderCheckTable();
+            select.value = '';
+            $("check-fee").value = '0';
+        };
+
+        const removeCheck = (idx) => {
+            selectedChecks.splice(idx, 1);
+            renderCheckTable();
+        };
+
+        const renderCheckTable = () => {
+            const tbody = $("check-tbody");
+            let total = 0;
+            tbody.innerHTML = selectedChecks.map((c, i) => {
+                total += c.checkFee;
+                return `<tr><td>${c.name}</td><td>¥${c.checkFee.toFixed(2)}</td><td><button class="remove-btn" onclick="removeCheck(${i})">删除</button></td></tr>`;
+            }).join('');
+            $("check-total").textContent = '检查费合计：¥' + total.toFixed(2);
+            updateGrandTotal();
+        };
+
+        const updateGrandTotal = () => {
+            const medTotal = selectedMedicines.reduce((s, m) => s + m.price * m.quantity, 0);
+            const checkTotal = selectedChecks.reduce((s, c) => s + c.checkFee, 0);
+            $("grand-total").textContent = '总计：¥' + (medTotal + checkTotal).toFixed(2);
+        };
+
+        const openRecordModal = (registerId, patientId, deptId, patientName, regNo) => {
+            currentRecord = { registerId, patientId, deptId };
+            $("rec-patient").value = patientName;
+            $("rec-regno").value = regNo;
+            $("rec-complaint").value = '';
+            $("rec-diagnosis").value = '';
+            $("rec-treatment").value = '';
+            selectedMedicines = [];
+            selectedChecks = [];
+            renderMedTable();
+            renderCheckTable();
+            $("record-modal").classList.add('show');
+            if (allMedicines.length === 0) loadMedicines();
+            loadChecks();
+        };
+
+        const closeRecordModal = () => {
+            $("record-modal").classList.remove('show');
+        };
+
+        // 编辑已有病历
+        const openEditRecordModal = async (registerId) => {
+            const rec = existingRecords[registerId];
+            if (!rec) { alert('未找到病历'); return; }
+            currentRecord = { registerId: rec.registerId, patientId: rec.patientId, recordId: rec.recordId, isEdit: true };
+
+            $("rec-patient").value = rec.patientName || '患者ID:' + rec.patientId;
+            $("rec-regno").value = rec.recordNo || '';
+            $("rec-complaint").value = rec.chiefComplaint || '';
+            $("rec-diagnosis").value = rec.diagnosis || '';
+            $("rec-treatment").value = rec.treatment || '';
+
+            // 加载已有药品
+            selectedMedicines = [];
+            selectedChecks = [];
+            try {
+                const medRes = await fetch(`/doctor/presDetailInfo/queryByPage?recordId=${rec.recordId}&page=1&size=100`, { credentials: 'include' }).then(r => r.json());
+                if (medRes.code === 1 && medRes.content && medRes.content.content) {
+                    selectedMedicines = medRes.content.content.map(m => ({
+                        id: m.medicineId, medName: m.medName, spec: m.spec, price: m.price, quantity: m.quantity
+                    }));
+                }
+                const checkRes = await fetch(`/doctor/checkInfo/queryByPage?recordId=${rec.recordId}&page=1&size=100`, { credentials: 'include' }).then(r => r.json());
+                if (checkRes.code === 1 && checkRes.content && checkRes.content.content) {
+                    selectedChecks = checkRes.content.content.map(c => ({
+                        name: c.checkName, checkFee: c.checkFee || 0
+                    }));
+                }
+            } catch (e) { console.error('加载处方失败', e); }
+
+            renderMedTable();
+            renderCheckTable();
+            $("record-modal").classList.add('show');
+            if (allMedicines.length === 0) loadMedicines();
+            loadChecks();
+        };
+        $("record-modal").addEventListener("click", (e) => { if (e.target === $("record-modal")) closeRecordModal(); });
+
+        const submitRecord = async () => {
+            const diagnosis = $("rec-diagnosis").value.trim();
+            if (!diagnosis) { alert('请输入诊断结果'); return; }
+            try {
+                if (currentRecord.isEdit) {
+                    // 编辑模式：更新病历
+                    const editRes = await fetch('/doctor/recordInfo/edit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            recordId: currentRecord.recordId,
+                            chiefComplaint: $("rec-complaint").value.trim(),
+                            diagnosis: diagnosis,
+                            treatment: $("rec-treatment").value.trim()
+                        }),
+                        credentials: 'include'
+                    }).then(r => r.json());
+                    if (editRes.code !== 1) { alert(editRes.msg || '更新失败'); return; }
+
+                    // 删除旧药品明细，重新添加
+                    try {
+                        const oldMeds = await fetch(`/doctor/presDetailInfo/queryByPage?recordId=${currentRecord.recordId}&page=1&size=100`, { credentials: 'include' }).then(r => r.json());
+                        if (oldMeds.code === 1 && oldMeds.content && oldMeds.content.content) {
+                            for (const old of oldMeds.content.content) {
+                                await fetch(`/doctor/presDetailInfo/deleteById/${old.detailId}`, { method: 'POST', credentials: 'include' });
+                            }
+                        }
+                    } catch (e) { console.error('删除旧药品明细失败', e); }
+
+                    for (const med of selectedMedicines) {
+                        await fetch('/doctor/presDetailInfo/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ recordId: currentRecord.recordId, medicineId: med.id, quantity: med.quantity }),
+                            credentials: 'include'
+                        });
+                    }
+
+                    // 删除旧检查项目，重新添加
+                    try {
+                        const oldChecks = await fetch(`/doctor/checkInfo/queryByPage?recordId=${currentRecord.recordId}&page=1&size=100`, { credentials: 'include' }).then(r => r.json());
+                        if (oldChecks.code === 1 && oldChecks.content && oldChecks.content.content) {
+                            for (const old of oldChecks.content.content) {
+                                await fetch(`/doctor/checkInfo/deleteById/${old.checkId}`, { method: 'POST', credentials: 'include' });
+                            }
+                        }
+                    } catch (e) { console.error('删除旧检查项目失败', e); }
+
+                    const checkTime = new Date().toLocaleString('zh-CN', {hour12: false}).replace(/\//g, '-');
+                    for (const check of selectedChecks) {
+                        await fetch('/doctor/checkInfo/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ recordId: currentRecord.recordId, checkName: check.name, checkFee: check.checkFee, checkTime: checkTime, checkStatus: 0 }),
+                            credentials: 'include'
+                        });
+                    }
+                    alert('病历更新成功');
+                } else {
+                    // 新建模式
+                    const recordRes = await fetch('/doctor/recordInfo/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            recordNo: 'REC-' + Date.now(),
+                            patientId: currentRecord.patientId,
+                            doctorId: doctorId,
+                            registerId: currentRecord.registerId,
+                            chiefComplaint: $("rec-complaint").value.trim(),
+                            diagnosis: diagnosis,
+                            treatment: $("rec-treatment").value.trim()
+                        }),
+                        credentials: 'include'
+                    }).then(r => r.json());
+
+                    if (recordRes.code !== 1) { alert(recordRes.msg || '病历保存失败'); return; }
+
+                    const recordId = recordRes.content;
+                    for (const med of selectedMedicines) {
+                        await fetch('/doctor/presDetailInfo/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ recordId: recordId, medicineId: med.id, quantity: med.quantity }),
+                            credentials: 'include'
+                        });
+                    }
+                    const checkTime = new Date().toLocaleString('zh-CN', {hour12: false}).replace(/\//g, '-');
+                    for (const check of selectedChecks) {
+                        await fetch('/doctor/checkInfo/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ recordId: recordId, checkName: check.name, checkFee: check.checkFee, checkTime: checkTime, checkStatus: 0 }),
+                            credentials: 'include'
+                        });
+                    }
+                    const medCount = selectedMedicines.length;
+                    const checkCount = selectedChecks.length;
+                    let msg = '病历保存成功';
+                    if (medCount > 0) msg += '，已开具' + medCount + '种药品';
+                    if (checkCount > 0) msg += '，已开具' + checkCount + '项检查';
+                    alert(msg);
+                }
+
+                closeRecordModal();
+                loadAppointments(currentPage, currentStatus);
+            } catch (e) { alert('网络错误'); }
+        };
+
+        const updateCountdowns = () => {
+            const expireMinutes = 30;
+            const expireMs = expireMinutes * 60 * 1000;
+            
+            document.querySelectorAll('.appointment-item').forEach(card => {
+                const countdownEl = card.querySelector('.info-countdown');
+                const acceptBtn = card.querySelector('.btn-primary');
+                const regStatus = parseInt(card.getAttribute('data-reg-status'), 10);
+                const timeStr = countdownEl ? countdownEl.getAttribute('data-time') : null;
+
+                if (regStatus !== 0) {
+                    if (countdownEl) countdownEl.textContent = '';
+                    return;
+                }
+                
+                if (!timeStr) {
+                    if (countdownEl) countdownEl.textContent = '';
+                    return;
+                }
+                
+                const targetTime = new Date(timeStr).getTime();
+                const now = new Date().getTime();
+                const diff = targetTime - now;
+                const expireDiff = diff + expireMs;
+                
+                if (expireDiff <= 0) {
+                    if (countdownEl) {
+                        countdownEl.textContent = '（已过期）';
+                        countdownEl.style.color = '#dc2626';
+                    }
+                    if (acceptBtn) {
+                        acceptBtn.disabled = true;
+                        acceptBtn.style.opacity = '0.5';
+                        acceptBtn.style.cursor = 'not-allowed';
+                        acceptBtn.textContent = '已过期';
+                    }
+                } else {
+                    const totalSeconds = Math.floor(expireDiff / 1000);
+                    
+                    if (countdownEl) {
+                        countdownEl.textContent = `（${totalSeconds}秒后过期）`;
+                        countdownEl.style.color = '#2563eb';
+                    }
+                    if (acceptBtn) {
+                        acceptBtn.disabled = false;
+                        acceptBtn.style.opacity = '1';
+                        acceptBtn.style.cursor = 'pointer';
+                        acceptBtn.textContent = '接诊';
+                    }
+                }
+            });
+        };
+
+        initDoctorId().then(() => {
+            loadAppointments(1, 'all');
+            updateCountdowns();
+            setInterval(updateCountdowns, 1000);
+        });
+    </script>
+</body>
+</html>

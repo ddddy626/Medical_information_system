@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.DeptInfoMapper">
+
+    <resultMap id="deptInfoMap" type="com.dyh.doctor.domain.DeptInfoEntity">
+        <result column="dept_id" property="deptId" />
+        <result column="dept_name" property="deptName" />
+        <result column="dept_desc" property="deptDesc" />
+        <result column="location" property="location" />
+        <result column="dept_phone" property="deptPhone" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            dept_info.dept_id, dept_info.dept_name, dept_info.dept_desc, dept_info.location, dept_info.dept_phone
+        FROM dept_info
+        WHERE 1 = 1 
+    </sql>
+
+    <sql id="condition">
+        <if test="deptInfo.deptId != null">
+             and dept_info.dept_id = #{deptInfo.deptId}
+        </if>
+        <if test="deptInfo.deptName != null and deptInfo.deptName != ''">
+             and dept_info.dept_name LIKE concat('%', #{deptInfo.deptName}, '%')
+        </if>
+        <if test="deptInfo.deptDesc != null and deptInfo.deptDesc != ''">
+             and dept_info.dept_desc LIKE concat('%', #{deptInfo.deptDesc}, '%')
+        </if>
+        <if test="deptInfo.location != null and deptInfo.location != ''">
+             and dept_info.location LIKE concat('%', #{deptInfo.location}, '%')
+        </if>
+        <if test="deptInfo.deptPhone != null and deptInfo.deptPhone != ''">
+             and dept_info.dept_phone LIKE concat('%', #{deptInfo.deptPhone}, '%')
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="deptInfoMap">
+        <include refid="baseSql"></include>
+        AND dept_info.dept_id = #{deptId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="deptInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by dept_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="deptId">
+        insert into dept_info(dept_name, dept_desc, location, dept_phone)
+        values(#{deptName}, #{deptDesc}, #{location}, #{deptPhone})
+    </insert>
+
+    <update id="update">
+        update dept_info
+        <set>
+            <if test="deptName != null and deptName != ''">
+                dept_name = #{deptName},
+            </if>
+            <if test="deptDesc != null and deptDesc != ''">
+                dept_desc = #{deptDesc},
+            </if>
+            <if test="location != null and location != ''">
+                location = #{location},
+            </if>
+            <if test="deptPhone != null and deptPhone != ''">
+                dept_phone = #{deptPhone},
+            </if>
+        </set>
+        WHERE dept_id = #{deptId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM dept_info WHERE dept_id = #{deptId}
+    </delete>
+</mapper>
+

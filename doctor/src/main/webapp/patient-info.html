@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完善患者信息 - 医疗系统</title>
+    <style>
+        :root {
+            --primary-color: #2b78d6;
+            --success-color: #1b8f46;
+            --warning-color: #d65b00;
+            --bg-color: #f0f4f8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            color: #223656;
+        }
+
+        .form-header p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2b78d6, #1f65b8);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(43, 120, 214, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .result {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .result.success {
+            display: block;
+            background: #effcf3;
+            border: 1px solid #bde6c7;
+            color: #1b8f46;
+        }
+
+        .result.error {
+            display: block;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .info-tip {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-tip span {
+            color: #92400e;
+            font-size: 13px;
+        }
+
+        @media (max-width: 640px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-card {
+                padding: 24px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="form-card">
+        <div class="form-header">
+            <h1 class="nav-active">完善患者信息</h1>
+            <p>请填写您的基本信息，以便我们为您提供更好的服务</p>
+        </div>
+
+        <div class="info-tip">
+            <span>💡 信息填写完成后即可使用完整功能</span>
+        </div>
+
+        <form id="patient-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>姓名 <span class="required">*</span></label>
+                    <input type="text" id="patient-name" required>
+                </div>
+                <div class="form-group">
+                    <label>性别 <span class="required">*</span></label>
+                    <select id="patient-gender" required>
+                        <option value="">请选择</option>
+                        <option value="1">男</option>
+                        <option value="0">女</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>年龄 <span class="required">*</span></label>
+                    <input type="number" id="patient-age" min="0" max="150" required>
+                </div>
+                <div class="form-group">
+                    <label>手机号</label>
+                    <input type="tel" id="patient-phone">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>邮箱</label>
+                <input type="email" id="patient-email" placeholder="用于接收挂号通知与登录验证码">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>身高 (cm)</label>
+                    <input type="number" id="patient-height" min="50" max="250" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>体重 (kg)</label>
+                    <input type="number" id="patient-weight" min="10" max="300" step="0.1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>血压 (mmHg)</label>
+                    <input type="number" id="patient-bp" min="60" max="200" step="1">
+                </div>
+                <div class="form-group">
+                    <label>血糖 (mmol/L)</label>
+                    <input type="number" id="patient-bs" min="2.8" max="11.1" step="0.1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>身份证号</label>
+                    <input type="text" id="patient-idcard">
+                </div>
+                <div class="form-group">
+                    <label>婚姻状况</label>
+                    <select id="patient-marriage">
+                        <option value="">请选择</option>
+                        <option value="未婚">未婚</option>
+                        <option value="已婚">已婚</option>
+                        <option value="离异">离异</option>
+                        <option value="丧偶">丧偶</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>地址</label>
+                <input type="text" id="patient-address">
+            </div>
+
+            <div class="form-group">
+                <label>既往病史</label>
+                <textarea id="patient-history" placeholder="请描述您的既往病史，如：高血压、糖尿病、心脏病等"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>过敏史</label>
+                <textarea id="patient-allergy" placeholder="请描述您的过敏史，如：青霉素、虾蟹等"></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" id="skip-btn">稍后填写</button>
+                <button type="submit" class="btn btn-primary">保存信息</button>
+            </div>
+
+            <div class="result" id="result"></div>
+        </form>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        let userId = new URLSearchParams(window.location.search).get('userId');
+        if (!userId || userId === 'null' || userId === 'undefined') userId = sessionStorage.getItem('patientUserId');
+        const userName = new URLSearchParams(window.location.search).get('userName');
+
+        if (userName) {
+            $("patient-name").value = userName;
+        }
+
+        // 加载已有信息
+        const loadExisting = async () => {
+            if (!userId) return;
+            try {
+                const userRes = await fetch(`/doctor/userInfo/queryById/${userId}`, { credentials: 'include' }).then(r => r.json());
+                if (userRes.code === 1 && userRes.content && userRes.content.email) {
+                    $("patient-email").value = userRes.content.email;
+                }
+                const res = await fetch(`/doctor/patientInfo/queryByPage?userId=${userId}&page=1&size=1`, { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    const p = res.content.content[0];
+                    if (p.patientName) $("patient-name").value = p.patientName;
+                    if (p.gender != null) $("patient-gender").value = String(p.gender);
+                    if (p.age) $("patient-age").value = p.age;
+                    if (p.phone) $("patient-phone").value = p.phone;
+                    if (p.idCard) $("patient-idcard").value = p.idCard;
+                    if (p.marriage) $("patient-marriage").value = p.marriage;
+                    if (p.address) $("patient-address").value = p.address;
+                    if (p.history) $("patient-history").value = p.history;
+                    if (p.allergy) $("patient-allergy").value = p.allergy;
+                    if (p.height) $("patient-height").value = p.height;
+                    if (p.weight) $("patient-weight").value = p.weight;
+                    if (p.bloodPressure) $("patient-bp").value = p.bloodPressure;
+                    if (p.bloodSugar) $("patient-bs").value = p.bloodSugar;
+                }
+            } catch (e) {}
+        };
+        loadExisting();
+
+        $("patient-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const userIdNum = userId ? parseInt(userId) : null;
+            if (!userIdNum) {
+                const result = $("result");
+                result.className = "result error";
+                result.textContent = "用户ID无效，请重新登录";
+                return;
+            }
+
+            const payload = {
+                userId: userIdNum,
+                patientName: $("patient-name").value.trim(),
+                gender: $("patient-gender").value,
+                age: $("patient-age").value ? parseInt($("patient-age").value) : null,
+                phone: $("patient-phone").value.trim(),
+                idCard: $("patient-idcard").value.trim(),
+                marriage: $("patient-marriage").value,
+                address: $("patient-address").value.trim(),
+                history: $("patient-history").value.trim(),
+                allergy: $("patient-allergy").value.trim(),
+                height: $("patient-height").value ? parseFloat($("patient-height").value) : null,
+                weight: $("patient-weight").value ? parseFloat($("patient-weight").value) : null,
+                bloodPressure: $("patient-bp").value ? parseFloat($("patient-bp").value) : null,
+                bloodSugar: $("patient-bs").value ? parseFloat($("patient-bs").value) : null
+            };
+
+            try {
+                // 先查是否已有记录
+                let existing = null;
+                const checkRes = await fetch(`/doctor/patientInfo/queryByPage?userId=${userIdNum}&page=1&size=1`, { credentials: 'include' }).then(r => r.json());
+                if (checkRes.code === 1 && checkRes.content && checkRes.content.content && checkRes.content.content.length > 0) {
+                    existing = checkRes.content.content[0];
+                }
+
+                let res;
+                if (existing) {
+                    payload.patientId = existing.patientId;
+                    res = await fetch('/doctor/patientInfo/edit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        credentials: 'include'
+                    }).then(r => r.json());
+                } else {
+                    res = await fetch('/doctor/patientInfo/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        credentials: 'include'
+                    }).then(r => r.json());
+                }
+
+                const emailVal = $("patient-email").value.trim();
+                if (res.code === 1 && emailVal) {
+                    const emailRes = await fetch('/doctor/userInfo/fillEmail', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: userIdNum, email: emailVal }),
+                        credentials: 'include'
+                    }).then(r => r.json());
+                    if (emailRes.code !== 1) {
+                        const result = $("result");
+                        result.className = "result error";
+                        result.textContent = emailRes.msg || "邮箱保存失败";
+                        return;
+                    }
+                }
+
+                const result = $("result");
+                if (res.code === 1) {
+                    result.className = "result success";
+                    result.textContent = "信息保存成功！正在跳转...";
+                    sessionStorage.setItem('patientUserId', userId);
+                    sessionStorage.setItem('patientUserName', payload.patientName);
+                    setTimeout(() => {
+                        window.location.href = `patient-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(payload.patientName)}`;
+                    }, 1500);
+                } else {
+                    result.className = "result error";
+                    result.textContent = res.msg || "保存失败，请稍后重试";
+                }
+            } catch (error) {
+                const result = $("result");
+                result.className = "result error";
+                result.textContent = "网络错误，请稍后重试";
+            }
+        });
+
+        $("skip-btn").addEventListener("click", () => {
+            sessionStorage.setItem('patientUserId', userId);
+            window.location.href = `patient-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName || '患者')}`;
+        });
+    </script>
+</body>
+</html>

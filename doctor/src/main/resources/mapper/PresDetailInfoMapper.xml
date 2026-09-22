@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.PresDetailInfoMapper">
+
+    <resultMap id="presDetailInfoMap" type="com.dyh.doctor.domain.PresDetailInfoEntity">
+        <result column="detail_id" property="detailId" />
+        <result column="record_id" property="recordId" />
+        <result column="medicine_id" property="medicineId" />
+        <result column="quantity" property="quantity" />
+        <result column="med_name" property="medName" />
+        <result column="spec" property="spec" />
+        <result column="price" property="price" />
+        <result column="med_type" property="medType" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            pres_detail_info.detail_id, pres_detail_info.record_id, pres_detail_info.medicine_id, pres_detail_info.quantity,
+            m.med_name, m.spec, m.price, m.med_type
+        FROM pres_detail_info
+        LEFT JOIN medicine_info m ON pres_detail_info.medicine_id = m.id
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="condition">
+        <if test="presDetailInfo.detailId != null">
+             and pres_detail_info.detail_id = #{presDetailInfo.detailId}
+        </if>
+        <if test="presDetailInfo.recordId != null">
+             and pres_detail_info.record_id = #{presDetailInfo.recordId}
+        </if>
+        <if test="presDetailInfo.medicineId != null">
+             and pres_detail_info.medicine_id = #{presDetailInfo.medicineId}
+        </if>
+        <if test="presDetailInfo.quantity != null">
+             and pres_detail_info.quantity = #{presDetailInfo.quantity}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="presDetailInfoMap">
+        <include refid="baseSql"></include>
+        AND pres_detail_info.detail_id = #{detailId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="presDetailInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by detail_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="detailId">
+        insert into pres_detail_info(record_id, medicine_id, quantity)
+        values(#{recordId}, #{medicineId}, #{quantity})
+    </insert>
+
+    <update id="update">
+        update pres_detail_info
+        <set>
+            <if test="recordId != null">
+                record_id = #{recordId},
+            </if>
+            <if test="medicineId != null">
+                medicine_id = #{medicineId},
+            </if>
+            <if test="quantity != null">
+                quantity = #{quantity},
+            </if>
+        </set>
+        WHERE detail_id = #{detailId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM pres_detail_info WHERE detail_id = #{detailId}
+    </delete>
+</mapper>

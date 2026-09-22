@@ -1,0 +1,73 @@
+# Build
+**/target/
+**/out/
+**/build/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local secrets / Jasypt
+**/application-local.properties
+**/application-secret.properties
+jasypt.encryptor.password
+**/jasypt-password*
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# =============================================================================
+# 敏感配置：严禁上传（含真实密码 / 密钥 / 令牌）
+# =============================================================================
+# Spring 真实配置文件（含 Jasypt 主密码、数据库密码、各类 API Key）
+**/application.properties
+**/application-*.properties
+**/application-*.yml
+**/application-*.yaml
+**/bootstrap.properties
+**/bootstrap.yml
+**/bootstrap-*.yml
+
+# 环境变量文件
+.env
+.env.*
+*.env
+
+# 其他常见敏感文件
+**/secrets/
+**/*-secret.*
+**/*secret*.properties
+**/*.p12
+**/*.jks
+**/*.keystore
+**/*.pem
+**/*.key
+
+# IDEA 数据源配置（含数据库连接串与账号）
+**/.idea/dataSources.xml
+**/.idea/dataSources.local.xml
+**/.idea/dataSources/
+
+# =============================================================================
+# 例外：模板文件必须上传（值已留空，供拉取者填写），不要被上面的规则排除
+# =============================================================================
+!**/*.example
+!**/*.template
+!**/application.properties.example
+!**/application-*.example

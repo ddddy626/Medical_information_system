@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言管理 - 医生工作台</title>
+    <style>
+        :root {
+            --primary-color: #ff7043;
+            --success-color: #1b8f46;
+            --warning-color: #d65b00;
+        }
+
+        * { box-sizing: border-box; }
+
+        body.med-tech-page { min-height: 100vh; position: relative; }
+
+        body.med-tech-page .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .back-btn {
+            padding: 6px 14px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover { background: #e5e7eb; }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover { background: #e5e7eb; }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 18px;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .filter-btn:hover { background: #f3f4f6; }
+        .filter-btn.active:hover { background: #e65100; }
+
+        .btn-new {
+            padding: 8px 18px;
+            background: var(--success-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .btn-new:hover { opacity: 0.9; }
+
+        .message-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .message-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.2s;
+        }
+
+        .message-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(255, 112, 67, 0.1);
+        }
+
+        .message-item.sent {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .message-item.received {
+            background: #fff;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            font-size: 15px;
+            color: #ffffff;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .message-content {
+            font-size: 14px;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .message-reply {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.32);
+            border-radius: 8px;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        .reply-label {
+            font-size: 12px;
+            color: #7ee8e0;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .reply-text {
+            font-size: 13px;
+            color: #ffffff;
+        }
+
+        .message-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-primary:hover { opacity: 0.9; }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover { background: #e5e7eb; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 {
+            margin: 0 0 20px;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #7ee8e0;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus { border-color: var(--primary-color); }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .success-tip {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-tip .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #dcfce7;
+            color: #16a34a;
+            font-size: 24px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 12px;
+        }
+
+        .success-tip h4 {
+            margin: 0 0 6px;
+            color: #ffffff;
+        }
+
+        .success-tip p {
+            margin: 0;
+            color: rgba(240, 244, 248, 0.55);
+            font-size: 14px;
+        }
+
+        #user-name {
+            color: #ffffff;
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <div class="brand">
+                <button class="back-btn" id="back-btn">返回工作台</button>
+                <h1 class="nav-active">✉️ 留言管理</h1>
+            </div>
+            <div class="user-info">
+                <span id="user-name">医生</span>
+                <div class="avatar" id="avatar-dot">医</div>
+                <button class="logout-btn" id="logout-btn">退出登录</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">留言列表</h2>
+                <div class="toolbar">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="pending">待回复</button>
+                    <button class="filter-btn" data-filter="replied">已回复</button>
+                    <button class="btn-new" id="btn-new-msg">发新留言</button>
+                </div>
+            </div>
+            <div id="message-list" class="message-list">
+                <div class="empty-state">
+                    <div class="icon">📨</div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回复模态框 -->
+    <div class="modal-overlay" id="reply-modal">
+        <div class="modal">
+            <h3>回复留言</h3>
+            <div class="form-group">
+                <label>原留言</label>
+                <div id="reply-original" style="padding:10px;background:rgba(0,0,0,0.28);border-radius:8px;font-size:13px;color:rgba(240,244,248,0.55);"></div>
+            </div>
+            <div class="form-group">
+                <label for="reply-content">回复内容</label>
+                <textarea id="reply-content" placeholder="请输入回复内容..."></textarea>
+            </div>
+            <div class="modal-btns">
+                <button class="btn btn-secondary" id="reply-cancel">取消</button>
+                <button class="btn btn-primary" id="reply-submit">发送回复</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发送新留言模态框 -->
+    <div class="modal-overlay" id="send-modal">
+        <div class="modal">
+            <h3>发送留言</h3>
+            <div id="send-modal-content">
+                <div class="form-group">
+                    <label for="send-patient">选择患者</label>
+                    <select id="send-patient" required>
+                        <option value="">加载中...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="send-content">留言内容</label>
+                    <textarea id="send-content" placeholder="请输入留言内容..."></textarea>
+                </div>
+            </div>
+            <div class="modal-btns" id="send-modal-btns">
+                <button class="btn btn-secondary" id="send-cancel">取消</button>
+                <button class="btn btn-primary" id="send-submit">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawId = urlParams.get('userId');
+        const rawName = urlParams.get('userName');
+        const userId = (!rawId || rawId === 'null' || rawId === 'undefined') ? null : rawId;
+        const userName = (!rawName || rawName === 'null' || rawName === 'undefined') ? null : rawName;
+
+        let allMessages = [];
+        let currentFilter = 'all';
+        let replyMsgId = null;
+        let myDoctorId = null;
+        let nameMap = {};
+
+        const loadNameMap = async () => {
+            const map = {};
+            try {
+                const [pRes, uRes] = await Promise.all([
+                    fetch('/doctor/patientInfo/queryByPage?page=1&size=999', { credentials: 'include' }).then(r => r.json()),
+                    fetch('/doctor/userInfo/queryByPage?page=1&size=999', { credentials: 'include' }).then(r => r.json())
+                ]);
+                const patients = pRes.code === 1 && pRes.content && pRes.content.content ? pRes.content.content : [];
+                patients.forEach((p) => {
+                    const label = p.patientName || '';
+                    if (p.patientId != null) map[p.patientId] = label;
+                    if (p.userId != null) map[p.userId] = label || map[p.userId] || '';
+                });
+                const users = uRes.code === 1 && uRes.content && uRes.content.content ? uRes.content.content : [];
+                users.forEach((u) => {
+                    if (u.userId == null) return;
+                    const label = u.username || u.realName || map[u.userId] || '';
+                    if (label) map[u.userId] = label;
+                });
+            } catch (e) {
+                console.error('加载名称失败', e);
+            }
+            nameMap = map;
+        };
+
+        const displayName = (id) => nameMap[id] || '患者';
+
+        const initDoctorId = async () => {
+            try {
+                const res = await fetch(`/doctor/doctorInfo/queryByPage?userId=${userId}&page=1&size=1`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    myDoctorId = res.content.content[0].doctorId;
+                }
+            } catch (e) {
+                console.error('获取doctorId失败:', e);
+            }
+        };
+
+        if (userName) {
+            $("user-name").textContent = userName;
+            $("avatar-dot").textContent = (userName.charAt(0) || '医').toUpperCase();
+        }
+
+        $("back-btn").addEventListener("click", () => {
+            window.location.href = `doctor-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
+        });
+
+        $("logout-btn").addEventListener("click", () => {
+            fetch('/doctor/userInfo/logout', { method: 'POST', credentials: 'include' })
+                .finally(() => { window.location.href = 'index.html'; });
+        });
+
+        // 加载留言
+        const loadMessages = async () => {
+            if (!myDoctorId) return;
+            try {
+                const [res1, res2] = await Promise.all([
+                    fetch(`/doctor/messageInfo/queryByPage?receiverId=${myDoctorId}&page=1&size=100`, { credentials: 'include' }).then(r => r.json()),
+                    fetch(`/doctor/messageInfo/queryByPage?senderId=${myDoctorId}&page=1&size=100`, { credentials: 'include' }).then(r => r.json())
+                ]);
+
+                allMessages = [];
+                if (res1.code === 1 && res1.content && res1.content.content) {
+                    allMessages = allMessages.concat(res1.content.content.map(m => ({ ...m, type: 'received' })));
+                }
+                if (res2.code === 1 && res2.content && res2.content.content) {
+                    allMessages = allMessages.concat(res2.content.content.map(m => ({ ...m, type: 'sent' })));
+                }
+                allMessages.sort((a, b) => (b.msgId || 0) - (a.msgId || 0));
+                renderMessages();
+            } catch (e) {
+                console.error('加载留言失败:', e);
+                $("message-list").innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>加载失败</p></div>';
+            }
+        };
+
+        // 每个患者（对话对象）只保留最新一条
+        const latestPerPatient = (list) => {
+            const byPeer = {};
+            list.forEach((m) => {
+                const peerId = m.type === 'sent' ? m.receiverId : m.senderId;
+                if (peerId == null) return;
+                const prev = byPeer[peerId];
+                if (!prev || (m.msgId || 0) > (prev.msgId || 0)) byPeer[peerId] = m;
+            });
+            return Object.values(byPeer).sort((a, b) => (b.msgId || 0) - (a.msgId || 0));
+        };
+
+        // 渲染留言
+        const renderMessages = () => {
+            let filtered = allMessages;
+            if (currentFilter === 'pending') {
+                filtered = allMessages.filter(m => m.type === 'received' && !m.replyContent);
+            } else if (currentFilter === 'replied') {
+                filtered = allMessages.filter(m => m.replyContent);
+            }
+            filtered = latestPerPatient(filtered);
+
+            const container = $("message-list");
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">${currentFilter === 'pending' ? '✅' : '📨'}</div><p>${currentFilter === 'pending' ? '没有待回复的留言' : '暂无留言记录'}</p></div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(msg => {
+                const isSent = msg.type === 'sent';
+                const peerId = isSent ? msg.receiverId : msg.senderId;
+                const name = displayName(peerId);
+                const senderLabel = isSent ? `发送给 ${name}` : `${name} 的留言`;
+                return `
+                    <div class="message-item ${isSent ? 'sent' : 'received'}">
+                        <div class="message-header">
+                            <span class="message-sender">${senderLabel}</span>
+                            <span class="message-time">${msg.msgTime || ''}</span>
+                        </div>
+                        <div class="message-content">${msg.msgContent || ''}</div>
+                        ${msg.replyContent ? `
+                            <div class="message-reply">
+                                <div class="reply-label">${isSent ? '患者回复：' : '我的回复：'}</div>
+                                <div class="reply-text">${msg.replyContent}</div>
+                            </div>
+                        ` : ''}
+                        ${!isSent && !msg.replyContent ? `
+                            <div class="message-actions">
+                                <button class="btn btn-primary" onclick="openReply(${msg.msgId}, ${(msg.msgContent || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, ' ')})">回复</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // 筛选按钮
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderMessages();
+            });
+        });
+
+        // 回复留言
+        const openReply = (msgId, content) => {
+            replyMsgId = msgId;
+            $("reply-original").textContent = content;
+            $("reply-content").value = '';
+            $("reply-modal").classList.add('show');
+        };
+
+        $("reply-cancel").addEventListener("click", () => {
+            $("reply-modal").classList.remove('show');
+            replyMsgId = null;
+        });
+
+        $("reply-modal").addEventListener("click", (e) => {
+            if (e.target === $("reply-modal")) {
+                $("reply-modal").classList.remove('show');
+                replyMsgId = null;
+            }
+        });
+
+        $("reply-submit").addEventListener("click", async () => {
+            const content = $("reply-content").value.trim();
+            if (!content) { alert('请输入回复内容'); return; }
+            try {
+                const res = await fetch('/doctor/messageInfo/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ msgId: replyMsgId, replyContent: content }),
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1) {
+                    $("reply-modal").classList.remove('show');
+                    alert('回复成功');
+                    loadMessages();
+                } else {
+                    alert(res.msg || '回复失败');
+                }
+            } catch (e) {
+                alert('网络错误');
+            }
+        });
+
+        // 发送新留言
+        $("btn-new-msg").addEventListener("click", async () => {
+            $("send-modal").classList.add('show');
+            $("send-content").value = '';
+            // 加载患者列表
+            try {
+                const res = await fetch('/doctor/patientInfo/queryByPage?page=1&size=100', { credentials: 'include' }).then(r => r.json());
+                if (res.code === 1 && res.content && res.content.content) {
+                    const patients = res.content.content;
+                    $("send-patient").innerHTML = '<option value="">请选择患者</option>' +
+                        patients.filter(p => p.userId).map(p =>
+                            `<option value="${p.userId}">${p.patientName || displayName(p.userId) || '患者'}</option>`
+                        ).join('');
+                } else {
+                    $("send-patient").innerHTML = '<option value="">暂无患者</option>';
+                }
+            } catch (e) {
+                $("send-patient").innerHTML = '<option value="">加载失败</option>';
+            }
+        });
+
+        $("send-cancel").addEventListener("click", () => {
+            $("send-modal").classList.remove('show');
+        });
+
+        $("send-modal").addEventListener("click", (e) => {
+            if (e.target === $("send-modal")) $("send-modal").classList.remove('show');
+        });
+
+        $("send-submit").addEventListener("click", async () => {
+            const receiverUserId = $("send-patient").value;
+            const content = $("send-content").value.trim();
+            if (!receiverUserId) { alert('请选择患者'); return; }
+            if (!content) { alert('请输入留言内容'); return; }
+            try {
+                const res = await fetch('/doctor/messageInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        msgContent: content,
+                        senderId: myDoctorId,
+                        receiverId: parseInt(receiverUserId, 10),
+                        msgTime: new Date().toLocaleString('zh-CN', {hour12:false}).replace(/\//g, '-')
+                    }),
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1) {
+                    $("send-modal").classList.remove('show');
+                    alert('留言发送成功');
+                    loadMessages();
+                } else {
+                    alert(res.msg || '发送失败');
+                }
+            } catch (e) {
+                alert('网络错误');
+            }
+        });
+
+        initDoctorId().then(() => loadNameMap().then(() => loadMessages()));
+    </script>
+</body>
+</html>

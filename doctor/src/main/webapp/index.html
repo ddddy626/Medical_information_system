@@ -1,0 +1,4706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医院门诊诊疗系统 - 患者咨询</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,600;1,9..40,300&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+
+        :root {
+            --bg: #060812;
+            --card: #0a1020;
+            --text: #f0f4f8;
+            --muted: rgba(240, 244, 248, 0.55);
+            --border: rgba(255, 255, 255, 0.08);
+            --ok: #4ecdc4;
+            --warn: #d65b00;
+            --role-color: #2c7be5;
+            --role-soft: rgba(44, 123, 229, 0.16);
+            --auth-grad-start: #1a3a5c;
+            --auth-grad-mid: #2c7be5;
+            --auth-grad-end: #4ecdc4;
+            --auth-form-bg: rgba(10, 16, 32, 0.92);
+            --auth-form-border: rgba(78, 205, 196, 0.28);
+            /* 首页暗光主题（与 home-med-tech 一致） */
+            --fui-cyan: #4ecdc4;
+            --fui-cyan-bright: #7ee8e0;
+            --fui-cyan-glow: rgba(78, 205, 196, 0.42);
+            --fui-panel-bg: rgba(6, 8, 18, 0.88);
+            --fui-line: rgba(78, 205, 196, 0.35);
+            --home-accent: #4ecdc4;
+            --home-accent-2: #2c7be5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #060812;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: none;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+            background: transparent;
+        }
+
+        /* Home background (iframe) */
+        /* 加宽画布并向右平移，与粒子场景内偏移叠加，心脏落在右半屏偏中 */
+        #home-bg-frame {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 180vw;
+            height: 100vh;
+            border: 0;
+            z-index: 0;
+            pointer-events: none;
+            display: none !important;
+            transform: translateX(18vw);
+            transform-origin: 50% 50%;
+        }
+
+        #med-three-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            display: block;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 76% 38%, rgba(78, 205, 196, 0.16), transparent 34%),
+                radial-gradient(circle at 22% 72%, rgba(44, 123, 229, 0.12), transparent 36%),
+                linear-gradient(135deg, #060812 0%, #0a1020 48%, #071018 100%);
+        }
+
+        .med-home-hud {
+            position: fixed;
+            z-index: 2;
+            right: 46px;
+            top: 112px;
+            width: min(520px, 34vw);
+            pointer-events: none;
+            color: #f0f4f8;
+        }
+
+        .med-home-hud .hud-kicker {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 4px 10px;
+            margin-bottom: 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(78, 205, 196, 0.38);
+            color: var(--fui-cyan-bright);
+            background: rgba(78, 205, 196, 0.08);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            box-shadow: 0 0 22px rgba(78, 205, 196, 0.18);
+        }
+
+        .med-home-hud h2 {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(34px, 4.8vw, 74px);
+            line-height: 1.02;
+            letter-spacing: 0;
+            text-shadow: 0 0 38px rgba(78, 205, 196, 0.22);
+        }
+
+        .med-home-hud p {
+            max-width: 460px;
+            margin: 18px 0 0;
+            color: rgba(240, 244, 248, 0.72);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .hud-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .hud-stat {
+            min-height: 86px;
+            padding: 12px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            border: 1px solid rgba(78, 205, 196, 0.24);
+            background: linear-gradient(160deg, rgba(10, 16, 32, 0.78), rgba(6, 8, 18, 0.82));
+            box-shadow: inset 0 1px 0 rgba(126, 232, 224, 0.12), 0 14px 34px rgba(0, 0, 0, 0.24);
+        }
+
+        .hud-stat strong {
+            display: block;
+            color: #ffffff;
+            font-size: 24px;
+        }
+
+        .hud-stat span {
+            display: block;
+            margin-top: 5px;
+            color: rgba(240, 244, 248, 0.55);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .hud-ecg {
+            width: 100%;
+            height: 54px;
+            margin-top: 22px;
+            opacity: 0.9;
+        }
+
+        .hud-ecg path {
+            fill: none;
+            stroke: var(--fui-cyan-bright);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px rgba(78, 205, 196, 0.72));
+            stroke-dasharray: 520;
+            animation: ecg-flow 3.2s linear infinite;
+        }
+
+        @keyframes ecg-flow {
+            from { stroke-dashoffset: 520; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .brand p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .home-lang-btn {
+            border-radius: 4px;
+            background: rgba(10, 16, 32, 0.75);
+            color: var(--fui-cyan-bright);
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            border: 1px solid var(--fui-line);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .home-lang-btn:hover {
+            border-color: var(--fui-cyan);
+            color: var(--fui-cyan-bright);
+        }
+
+        .home-role-glass {
+            position: relative;
+        }
+
+        .home-role-trigger {
+            border-radius: 4px;
+            background: rgba(10, 16, 32, 0.85);
+            color: var(--fui-cyan-bright);
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid var(--fui-cyan);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 0 18px var(--fui-cyan-glow);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .home-role-trigger:hover {
+            background: rgba(78, 205, 196, 0.12);
+            border-color: var(--fui-cyan-bright);
+        }
+
+        .home-role-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 168px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(10, 16, 32, 0.96);
+            border: 1px solid var(--fui-cyan);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 0 24px var(--fui-cyan-glow), 0 16px 40px rgba(0, 0, 0, 0.45);
+            display: none;
+            z-index: 30;
+        }
+
+        .home-role-glass.open .home-role-menu {
+            display: block;
+        }
+
+        .home-role-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            background: transparent;
+            color: #c8f4ff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .home-role-menu button:last-child {
+            margin-bottom: 0;
+        }
+
+        .home-role-menu button:hover {
+            background: rgba(78, 205, 196, 0.12);
+            color: var(--fui-cyan-bright);
+        }
+
+        .topbar-right {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-chip {
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 22px;
+            height: 42px;
+            padding: 0 12px 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #2a3f60;
+        }
+
+        .user-chip .avatar-dot {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            width: 280px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 18px 36px rgba(22, 43, 89, 0.15);
+            padding: 10px;
+            display: none;
+            z-index: 25;
+        }
+
+        .user-menu.open .user-dropdown {
+            display: block;
+        }
+
+        .user-summary {
+            border-bottom: 1px solid #edf2f8;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .user-summary strong {
+            display: block;
+            font-size: 17px;
+            margin-bottom: 2px;
+            color: #223656;
+        }
+
+        .user-summary span {
+            color: #7587a4;
+            font-size: 12px;
+        }
+
+        .user-menu-btn {
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            padding: 10px 9px;
+            color: #304a71;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .user-menu-btn:hover {
+            background: #eef4ff;
+            color: #1f5eaf;
+        }
+
+        .user-menu-btn.logout {
+            color: #c14a2b;
+        }
+
+        .carousel-card {
+            grid-column: 1 / -1;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .carousel-wrap {
+            position: relative;
+            height: 260px;
+        }
+
+        .carousel-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.45s ease;
+        }
+
+        .carousel-slide.active { opacity: 1; }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .carousel-caption {
+            position: absolute;
+            left: 16px;
+            bottom: 14px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+        .dot-wrap {
+            position: absolute;
+            right: 14px;
+            bottom: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.55);
+            cursor: pointer;
+        }
+
+        .dot.active { background: #fff; }
+
+        /* 首页区背景透明，黑色由 body 提供，心脏 iframe (z-index:0) 才能透出 */
+        .patient-home {
+            display: block;
+            position: relative;
+            min-height: 100vh;
+            padding: 0;
+            pointer-events: none;
+            background: transparent;
+            border-radius: 0;
+            overflow: visible;
+        }
+
+        .home-left-stack {
+            position: fixed;
+            z-index: 2;
+            left: 6px;
+            top: 80px;
+            bottom: 18px;
+            width: min(1000px, 68vw);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            pointer-events: none;
+        }
+
+        /* 原 AI 小建议位置：宣传轮播 */
+        .home-carousel {
+            position: relative;
+            flex: 0 0 auto;
+            height: 380px;
+            pointer-events: auto;
+            clip-path: polygon(22px 0%, calc(100% - 22px) 0%, 100% 22px, 100% 100%, 0% 100%, 0% 22px);
+            border: 3px solid var(--fui-cyan);
+            box-shadow: 0 0 28px var(--fui-cyan-glow), inset 0 1px 0 rgba(124, 249, 255, 0.12);
+            background: rgba(0, 14, 22, 0.75);
+            overflow: hidden;
+        }
+
+        .home-carousel .carousel-viewport {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .home-carousel .carousel-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .home-carousel .carousel-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .home-carousel .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            filter: saturate(1.05) contrast(1.02);
+            transform: scale(1.02);
+            transition: transform 6s ease, filter 0.5s ease;
+        }
+
+        .home-carousel .carousel-slide.active img {
+            transform: scale(1);
+        }
+
+        .home-carousel .carousel-prev,
+        .home-carousel .carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            width: 36px;
+            height: 44px;
+            border: 1px solid var(--fui-line);
+            background: rgba(0, 18, 28, 0.65);
+            color: var(--fui-cyan-bright);
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .home-carousel .carousel-prev:hover,
+        .home-carousel .carousel-next:hover {
+            border-color: var(--fui-cyan);
+            box-shadow: 0 0 12px var(--fui-cyan-glow);
+        }
+
+        .home-carousel .carousel-prev { left: 8px; }
+        .home-carousel .carousel-next { right: 8px; }
+
+        .home-carousel-dots {
+            position: absolute;
+            right: 12px;
+            bottom: 10px;
+            z-index: 3;
+            display: flex;
+            gap: 8px;
+        }
+
+        .home-carousel-dots .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            border: none;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+        }
+
+        .home-carousel-dots .dot.active {
+            background: var(--fui-cyan-bright);
+            box-shadow: 0 0 10px var(--fui-cyan-glow);
+        }
+
+        /* 问诊（左） + AI 小建议（右） */
+        .home-panels-row {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 16px;
+            flex: 1 1 0;
+            min-height: 0;
+            pointer-events: none;
+        }
+
+        .home-panels-row > .home-floating-panel {
+            position: relative;
+            top: auto;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            flex: 1 1 50%;
+            min-width: 0;
+            min-height: 0;
+            width: auto;
+            max-height: none;
+            pointer-events: auto;
+        }
+
+        .home-floating-panel {
+            overflow: auto;
+            padding: 20px 24px 16px;
+            pointer-events: auto;
+            color: #d8f8ff;
+            /* 切角 + 加粗青色发光边框（FUI） */
+            clip-path: polygon(26px 0%, calc(100% - 26px) 0%, 100% 26px, 100% 100%, 0% 100%, 0% 26px);
+            background: linear-gradient(160deg, rgba(0, 36, 48, 0.82) 0%, rgba(0, 8, 18, 0.92) 55%, rgba(0, 16, 28, 0.9) 100%);
+            border: 3px solid var(--fui-cyan);
+            box-shadow:
+                0 0 36px var(--fui-cyan-glow),
+                0 0 3px rgba(124, 249, 255, 0.95),
+                inset 0 1px 0 rgba(126, 232, 224, 0.12),
+                inset 0 -24px 56px rgba(0, 200, 255, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .fui-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin: 0 0 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--fui-line);
+        }
+
+        .fui-panel-head h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--fui-cyan-bright);
+            letter-spacing: 0.16em;
+            text-shadow: 0 0 20px var(--fui-cyan-glow);
+        }
+
+        .fui-head-deco {
+            flex: 1;
+            max-width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--fui-cyan) 0%, transparent 100%);
+            opacity: 0.85;
+            position: relative;
+        }
+
+        .fui-head-deco::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 72px;
+            height: 4px;
+            background: repeating-linear-gradient(90deg, var(--fui-cyan) 0 3px, transparent 3px 7px);
+            opacity: 0.55;
+        }
+
+        .home-floating-panel .panel-hint {
+            margin: 0 0 16px;
+            font-size: 14px;
+            color: rgba(180, 230, 245, 0.78);
+            line-height: 1.55;
+        }
+
+        .home-floating-panel .consult-list {
+            gap: 12px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .home-floating-panel .quick-ai-btn {
+            background: rgba(0, 24, 36, 0.65);
+            border: 1px solid var(--fui-line);
+            color: #c8f4ff;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        .home-floating-panel .quick-ai-btn:hover {
+            background: rgba(78, 205, 196, 0.12);
+            border-color: var(--fui-cyan);
+            color: #fff;
+        }
+
+        .home-floating-panel label {
+            color: rgba(160, 230, 250, 0.92);
+            font-size: 13px;
+        }
+
+        .home-floating-panel input,
+        .home-floating-panel textarea {
+            background: rgba(4, 18, 28, 0.75);
+            border: 1px solid var(--fui-line);
+            color: #eaf8ff;
+            border-radius: 6px;
+        }
+
+        .home-floating-panel input::placeholder,
+        .home-floating-panel textarea::placeholder {
+            color: rgba(140, 190, 205, 0.55);
+        }
+
+        .home-floating-panel input:focus,
+        .home-floating-panel textarea:focus {
+            outline: none;
+            border-color: var(--fui-cyan);
+            box-shadow: 0 0 0 1px var(--fui-cyan-glow);
+        }
+
+        .home-floating-panel .submit-btn {
+            width: 100%;
+            margin-top: 4px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            border-radius: 4px;
+            background: linear-gradient(180deg, rgba(78, 205, 196, 0.25) 0%, rgba(20, 60, 70, 0.5) 100%);
+            color: var(--fui-cyan-bright);
+            border: 2px solid var(--fui-cyan);
+            box-shadow: 0 0 20px var(--fui-cyan-glow);
+        }
+
+        .home-floating-panel .submit-btn:hover {
+            background: linear-gradient(180deg, rgba(78, 205, 196, 0.38) 0%, rgba(30, 80, 90, 0.55) 100%);
+            box-shadow: 0 0 28px rgba(78, 205, 196, 0.55);
+        }
+
+        .home-floating-panel .result {
+            background: linear-gradient(160deg, rgba(0, 36, 48, 0.45) 0%, rgba(0, 16, 28, 0.5) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(78, 205, 196, 0.2);
+            color: #e0f7fa;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .home-floating-panel .result.success {
+            color: #b2fff0;
+            border-color: rgba(80, 255, 160, 0.3);
+            background: linear-gradient(160deg, rgba(0, 48, 36, 0.4) 0%, rgba(0, 24, 18, 0.45) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .home-floating-panel .result.warn {
+            color: #ffe4b8;
+            border-color: rgba(255, 180, 80, 0.3);
+            background: linear-gradient(160deg, rgba(48, 24, 0, 0.4) 0%, rgba(36, 18, 0, 0.45) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .home-floating-panel #ai-question {
+            min-height: 100px;
+            font-size: 14px;
+        }
+
+        .home-floating-panel #consult-content {
+            min-height: 88px;
+            font-size: 14px;
+        }
+
+        .home-floating-panel #ai-result {
+            max-height: min(180px, 26vh);
+            overflow: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+
+        .home-floating-panel .online-form {
+            margin-top: 4px;
+            gap: 12px;
+        }
+
+        /* Show top bar on home */
+        #site-topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px 16px;
+            margin: 0;
+            pointer-events: auto;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+            border-bottom: 1px solid rgba(78, 205, 196, 0.2);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            margin-bottom: 0;
+        }
+
+        #site-topbar .brand h1 {
+            color: #e8fbff;
+            text-shadow: 0 0 24px rgba(78, 205, 196, 0.35), 0 2px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        #site-topbar .brand p {
+            color: rgba(244, 248, 255, 0.92);
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
+        }
+
+        #site-topbar .user-chip {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            color: #f2f7ff;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        #site-topbar .user-dropdown {
+            background: rgba(18, 28, 48, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #e8f0ff;
+        }
+
+        #site-topbar .user-summary {
+            border-bottom-color: rgba(255, 255, 255, 0.12);
+        }
+
+        #site-topbar .user-summary strong {
+            color: #f5f9ff;
+        }
+
+        #site-topbar .user-summary span,
+        #site-topbar #top-summary-line {
+            color: rgba(220, 232, 255, 0.82);
+        }
+
+        #site-topbar .user-menu-btn {
+            color: #e8f0ff;
+        }
+
+        #site-topbar .user-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .home-hidden-tools {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            pointer-events: none;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 8px 24px rgba(16, 41, 97, 0.08);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 22px;
+        }
+
+        .consult-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .consult-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            background: #fbfdff;
+        }
+
+        .consult-item strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .quick-ai-btn {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fbfdff;
+            color: #284266;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .quick-ai-btn:hover {
+            background: #edf4ff;
+            border-color: #cfe0fb;
+        }
+
+        .online-form {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #405176;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        input, textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 96px;
+        }
+
+        .submit-btn {
+            border: none;
+            border-radius: 8px;
+            background: #2b78d6;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .result.success {
+            display: block;
+            color: var(--ok);
+            border-color: #bde6c7;
+            background: #effcf3;
+        }
+
+        .result.warn {
+            display: block;
+            color: var(--warn);
+            border-color: #ffd4b8;
+            background: #fff7f1;
+        }
+
+        .auth-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 20;
+        }
+
+        .auth-mask.open { display: flex; }
+
+        .fui-auth-modal {
+            width: min(820px, 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+            position: relative;
+            background: #fff;
+        }
+
+        .fui-auth-modal .close-btn {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            z-index: 5;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            background: rgba(0,0,0,0.06);
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fui-auth-modal .close-btn:hover {
+            background: rgba(0,0,0,0.12);
+            color: #333;
+        }
+
+        .fui-auth-modal .auth-content {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 480px;
+        }
+
+        /* 左侧角色选择面板 */
+        .auth-role-panel {
+            padding: 36px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            transition: background 0.4s, border-color 0.4s;
+            border-right: 1px solid #eee;
+        }
+
+        .auth-role-panel .role-panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.04em;
+            transition: color 0.4s;
+        }
+
+        .role-card-btn {
+            width: 100%;
+            padding: 18px 14px;
+            border: 2px solid transparent;
+            border-radius: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            background: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card-btn .role-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            transition: all 0.3s;
+        }
+
+        .role-card-btn .role-label {
+            font-size: 15px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .role-card-btn .role-sub {
+            font-size: 11px;
+            margin-top: 4px;
+            opacity: 0.7;
+            transition: color 0.3s;
+        }
+
+        /* === 患者 === */
+        .auth-role-panel[data-active="patient"] {
+            background: linear-gradient(160deg, #e8f4fd 0%, #f0f8ff 50%, #ffffff 100%);
+            border-right-color: #d0e8f7;
+        }
+        .auth-role-panel[data-active="patient"] .role-panel-title { color: #2b78d6; }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="patient"] {
+            border-color: #2b78d6;
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(43, 120, 214, 0.18);
+        }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="patient"] .role-icon {
+            background: #2b78d6; color: #fff;
+        }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="patient"] .role-label { color: #2b78d6; }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="patient"] .role-sub { color: #5a9de0; }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="doctor"] .role-icon { background: #e8ecea; color: #2d6a4f; }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="doctor"] .role-label { color: #6b7280; }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="admin"] .role-icon { background: #fde8d0; color: #b45309; }
+        .auth-role-panel[data-active="patient"] .role-card-btn[data-role="admin"] .role-label { color: #6b7280; }
+
+        /* === 医生 === */
+        .auth-role-panel[data-active="doctor"] {
+            background: linear-gradient(160deg, #2d6a4f 0%, #40916c 50%, #52b788 100%);
+            border-right-color: #2d6a4f;
+        }
+        .auth-role-panel[data-active="doctor"] .role-panel-title { color: #ffffff; }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="doctor"] {
+            border-color: #b7e4c7;
+            background: rgba(255,255,255,0.18);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="doctor"] .role-icon {
+            background: #fff; color: #2d6a4f;
+        }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="doctor"] .role-label { color: #ffffff; }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="doctor"] .role-sub { color: rgba(255,255,255,0.7); }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="patient"] .role-icon { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="patient"] .role-label { color: rgba(255,255,255,0.6); }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="patient"] .role-sub { color: rgba(255,255,255,0.4); }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="admin"] .role-icon { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="admin"] .role-label { color: rgba(255,255,255,0.6); }
+        .auth-role-panel[data-active="doctor"] .role-card-btn[data-role="admin"] .role-sub { color: rgba(255,255,255,0.4); }
+
+        /* === 管理员 === */
+        .auth-role-panel[data-active="admin"] {
+            background: linear-gradient(160deg, #78350f 0%, #92400e 50%, #b45309 100%);
+            border-right-color: #78350f;
+        }
+        .auth-role-panel[data-active="admin"] .role-panel-title { color: #fff7ed; }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="admin"] {
+            border-color: #fbbf24;
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="admin"] .role-icon {
+            background: #fef3c7; color: #92400e;
+        }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="admin"] .role-label { color: #fff; }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="admin"] .role-sub { color: rgba(255,255,255,0.7); }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="patient"] .role-icon { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="patient"] .role-label { color: rgba(255,255,255,0.6); }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="patient"] .role-sub { color: rgba(255,255,255,0.4); }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="doctor"] .role-icon { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="doctor"] .role-label { color: rgba(255,255,255,0.6); }
+        .auth-role-panel[data-active="admin"] .role-card-btn[data-role="doctor"] .role-sub { color: rgba(255,255,255,0.4); }
+
+        /* 右侧表单 */
+        .form-side {
+            padding: 36px 32px 28px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-side .auth-role-head {
+            margin-bottom: 20px;
+        }
+
+        .form-side .auth-role-head h3 {
+            margin: 0 0 4px;
+            font-size: 22px;
+            color: var(--auth-accent, #1f2937);
+        }
+
+        .form-side .auth-role-head p {
+            margin: 0;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .form-side .auth-switch {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .form-side .auth-tab {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 14px;
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .form-side .auth-tab:hover { color: #6b7280; }
+
+        .form-side .auth-tab.active {
+            color: var(--auth-accent, #2b78d6);
+            border-bottom-color: var(--auth-accent, #2b78d6);
+        }
+
+        .form-side .form-grid input {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        .form-side .form-grid input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-side .form-grid input:focus {
+            outline: none;
+            border-color: var(--auth-accent, #2b78d6);
+            box-shadow: 0 0 0 3px var(--auth-accent-soft, rgba(43,120,214,0.1));
+            background: #fff;
+        }
+
+        .form-side .captcha-canvas {
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 8px;
+            height: 42px;
+            cursor: pointer;
+            width: 110px;
+        }
+
+        .form-side .captcha-refresh-btn {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            height: 42px;
+            background: #fff;
+            color: #6b7280;
+            padding: 0 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .form-side .captcha-refresh-btn:hover {
+            border-color: var(--auth-accent, #2b78d6);
+            color: var(--auth-accent, #2b78d6);
+        }
+
+        .form-side .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .form-side .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-side .btn:not(.btn-outline) {
+            background: var(--auth-accent, #2b78d6);
+            color: #fff;
+        }
+
+        .form-side .btn:not(.btn-outline):hover {
+            filter: brightness(1.1);
+            box-shadow: 0 4px 12px var(--auth-accent-soft, rgba(43,120,214,0.3));
+        }
+
+        .form-side .btn-outline {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .form-side .btn-outline:hover {
+            background: #e5e7eb;
+        }
+
+        .form-side #auth-result {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .form-side #auth-result.success {
+            display: block;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+        }
+
+        .form-side #auth-result.warn {
+            display: block;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #b45309;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .captcha-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+
+        .email-code-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .email-code-row button {
+            border: 1px solid #c8d8ee;
+            border-radius: 8px;
+            height: 40px;
+            background: #fff;
+            color: #2b78d6;
+            padding: 0 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        .email-code-row button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            color: #6b7280;
+        }
+
+        .bind-email-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 60;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .bind-email-mask.open {
+            display: flex;
+        }
+
+        .bind-email-dialog {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 14px;
+            padding: 22px 24px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+        }
+
+        .bind-email-dialog h3 {
+            margin: 0 0 8px;
+            color: #223656;
+            font-size: 18px;
+        }
+
+        .bind-email-dialog p {
+            margin: 0 0 14px;
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .bind-email-dialog input {
+            width: 100%;
+            box-sizing: border-box;
+            height: 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0 12px;
+            margin-bottom: 14px;
+        }
+
+        .bind-email-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .bind-email-actions button {
+            height: 36px;
+            border-radius: 8px;
+            padding: 0 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .bind-email-cancel {
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #374151;
+        }
+
+        .bind-email-save {
+            border: none;
+            background: #2b78d6;
+            color: #fff;
+        }
+
+        .captcha-wrap {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .captcha-canvas {
+            border: 1px solid #c8d8ee;
+            background: #eef5ff;
+            border-radius: 8px;
+            height: 40px;
+            cursor: pointer;
+            width: 110px;
+        }
+
+        .captcha-refresh-btn {
+            border: 1px solid #c8d8ee;
+            border-radius: 8px;
+            height: 40px;
+            background: #fff;
+            color: #5a7296;
+            padding: 0 9px;
+            cursor: pointer;
+        }
+
+        .actions {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            cursor: pointer;
+            background: var(--role-color);
+            font-size: 14px;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #344568;
+            border: 1px solid var(--border);
+        }
+
+        /* 管理员工作台 — 深空暗色 + Line Sidebar 活跃指示 */
+        .main-layout {
+            display: none;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 78% 16%, rgba(78, 205, 196, 0.1), transparent 36%),
+                radial-gradient(circle at 12% 80%, rgba(44, 123, 229, 0.1), transparent 34%),
+                linear-gradient(135deg, #060812 0%, #0a1020 55%, #071018 100%);
+            color: #f0f4f8;
+            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        .main-layout.active {
+            display: grid;
+            grid-template-columns: 240px minmax(0, 1fr);
+        }
+
+        .sidebar {
+            background: rgba(10, 16, 32, 0.92);
+            border-right: 1px solid rgba(78, 205, 196, 0.22);
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(16px);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 8px 8px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .brand-mark {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #4ecdc4, #2c7be5);
+            color: #061018;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .sidebar-brand h3 {
+            margin: 0;
+            font-size: 13px;
+            color: #ffffff;
+            line-height: 1.35;
+        }
+
+        .sidebar-brand p {
+            margin: 2px 0 0;
+            color: rgba(240, 244, 248, 0.55);
+            font-size: 12px;
+        }
+
+        .menu-list {
+            display: grid;
+            gap: 4px;
+            margin-top: 2px;
+            align-content: start;
+            overflow: auto;
+            padding-left: 4px;
+        }
+
+        .menu-group-title {
+            font-size: 11px;
+            color: rgba(240, 244, 248, 0.4);
+            padding: 10px 8px 4px;
+            letter-spacing: 0.06em;
+        }
+
+        .menu-btn {
+            border: 1px solid transparent;
+            background: transparent;
+            border-radius: 6px;
+            padding: 8px 10px 8px 14px;
+            text-align: left;
+            cursor: pointer;
+            color: rgba(240, 244, 248, 0.72);
+            font-size: 13px;
+            position: relative;
+            transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+        }
+
+        .menu-btn::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 3px;
+            height: 0;
+            border-radius: 2px;
+            background: #4ecdc4;
+            transform: translateY(-50%);
+            transition: height 0.18s ease;
+        }
+
+        .menu-btn:hover {
+            color: #7ee8e0;
+            background: rgba(78, 205, 196, 0.08);
+        }
+
+        .menu-btn.active {
+            color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.12);
+            border-color: rgba(78, 205, 196, 0.28);
+        }
+
+        .menu-btn.active::before {
+            height: 60%;
+        }
+
+        .menu-parent {
+            font-size: 13px;
+            color: rgba(240, 244, 248, 0.78);
+            padding: 8px 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: transparent;
+        }
+
+        .menu-parent::after {
+            content: "▸";
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.4);
+            transition: transform .2s ease;
+        }
+
+        .menu-parent.open {
+            color: #4ecdc4;
+            border-color: rgba(78, 205, 196, 0.28);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .menu-parent.open::after {
+            transform: rotate(90deg);
+        }
+
+        .menu-sub-list {
+            display: none;
+            gap: 3px;
+            margin-left: 10px;
+            margin-top: 2px;
+        }
+
+        .menu-sub-list.open {
+            display: grid;
+        }
+
+        .main-layout .logout-btn {
+            margin-top: auto;
+            width: 100%;
+            border: 1px solid rgba(78, 205, 196, 0.4);
+            color: #7ee8e0;
+            background: rgba(78, 205, 196, 0.08);
+            border-radius: 8px;
+            padding: 9px;
+            cursor: pointer;
+        }
+
+        .main-layout .logout-btn:hover {
+            background: rgba(78, 205, 196, 0.16);
+            border-color: #4ecdc4;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            min-width: 0;
+        }
+
+        .workspace-topbar {
+            height: 58px;
+            border-bottom: 1px solid rgba(78, 205, 196, 0.18);
+            background: rgba(10, 16, 32, 0.88);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .workspace-topbar h2 {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.3;
+            color: #ffffff;
+        }
+
+        .workspace-topbar p {
+            margin: 2px 0 0;
+            color: rgba(240, 244, 248, 0.55);
+            font-size: 12px;
+        }
+
+        .workspace-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f0f4f8;
+            font-size: 13px;
+        }
+
+        .main-layout .avatar-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ecdc4, #2c7be5);
+            color: #061018;
+            display: grid;
+            place-items: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .content {
+            padding: 20px;
+            min-width: 0;
+        }
+
+        .content-page-title {
+            margin: 0 0 12px;
+            font-size: 26px;
+            color: #ffffff;
+        }
+
+        .content-page-desc {
+            margin: 0 0 16px;
+            color: rgba(240, 244, 248, 0.55);
+            font-size: 14px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .dash-stat {
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92));
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            color: #f0f4f8;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .dash-stat:hover {
+            transform: translateY(-2px);
+            border-color: #4ecdc4;
+        }
+
+        .dash-stat b {
+            display: block;
+            font-size: 26px;
+            margin: 8px 0 4px;
+            color: #7ee8e0;
+        }
+
+        .dash-panels {
+            display: grid;
+            grid-template-columns: 1.1fr 1.1fr 0.9fr;
+            gap: 16px;
+        }
+
+        .dash-panel {
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92));
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            padding: 18px;
+            min-height: 190px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+            color: #f0f4f8;
+        }
+
+        .dash-panel h4 {
+            margin: 0 0 10px;
+            color: #ffffff;
+        }
+
+        .dash-chart-panel {
+            grid-column: 1 / -1;
+            min-height: 320px;
+        }
+
+        .dash-chart {
+            width: 100%;
+            height: 260px;
+        }
+
+        .dash-stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .dash-kpi {
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92));
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dash-kpi-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .dash-kpi-meta span {
+            display: block;
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .dash-kpi-meta b {
+            display: block;
+            margin-top: 3px;
+            font-size: 30px;
+            line-height: 1;
+            color: #7ee8e0;
+        }
+
+        .dash-main-grid {
+            display: grid;
+            grid-template-columns: 1.35fr 0.65fr;
+            gap: 14px;
+        }
+
+        .dash-order-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .dash-alert-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .dash-alert-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92));
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: box-shadow 0.2s;
+        }
+
+        .dash-alert-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.22); border-color: #4ecdc4; transform: translateY(-2px);
+        }
+
+        .dash-alert-icon {
+            font-size: 22px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .dash-alert-body {
+            font-size: 13px;
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .dash-alert-body b {
+            display: inline;
+            font-size: 22px;
+            color: #7ee8e0;
+            margin: 0 3px;
+        }
+
+        .dash-quick-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .dash-quick-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            padding: 14px;
+            color: #f0f4f8;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .dash-quick-btn:hover {
+            background: rgba(78, 205, 196, 0.1);
+            border-color: #4ecdc4;
+            color: #7ee8e0;
+            transform: translateY(-1px);
+        }
+
+        .dash-quick-icon {
+            font-size: 16px;
+        }
+
+        .dash-order-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); color: #f0f4f8; }
+
+        .dash-order-time { color: rgba(240,244,248,0.55); font-size: 12px; }
+
+        .dash-empty { color: rgba(240,244,248,0.55); font-size: 13px; padding: 12px 0; }
+
+        .dash-item {
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            padding: 8px 0;
+            font-size: 13px;
+            color: rgba(240, 244, 248, 0.78);
+        }
+
+        .editor-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 20, 45, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 40;
+            padding: 16px;
+        }
+
+        .editor-dialog {
+            width: min(760px, 100%);
+            max-height: 85vh;
+            overflow: auto;
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.98), rgba(10, 16, 32, 0.96));
+            border-radius: 14px;
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.38);
+            padding: 16px;
+            color: #f0f4f8;
+        }
+
+        .editor-dialog h3 {
+            margin: 0 0 12px;
+            color: #ffffff;
+            font-size: 18px;
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 12px;
+        }
+
+        .editor-item label {
+            display: block;
+            margin: 0 0 4px;
+            font-size: 12px;
+            color: #7ee8e0;
+        }
+
+        .editor-item input,
+        .editor-item textarea,
+        .editor-item select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f0f4f8;
+            border-radius: 6px;
+            width: 100%;
+        }
+
+        .editor-item input {
+            height: 36px;
+        }
+
+        .editor-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .crud-card {
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92));
+            padding: 14px;
+            color: #f0f4f8;
+        }
+
+        .crud-card .result.success {
+            color: #7ee8e0;
+            border-color: rgba(78, 205, 196, 0.35);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .crud-card .result.warn {
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.35);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .crud-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .crud-toolbar input,
+        .crud-toolbar select {
+            min-width: 160px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0 10px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #f0f4f8;
+            outline: none;
+            transition: border-color 0.18s ease;
+        }
+
+        .crud-toolbar input::placeholder {
+            color: rgba(240, 244, 248, 0.4);
+        }
+
+        .crud-toolbar input:focus,
+        .crud-toolbar select:focus {
+            border-color: rgba(78, 205, 196, 0.55);
+        }
+
+        .crud-toolbar select option {
+            background: #0a1020;
+            color: #f0f4f8;
+        }
+
+        .crud-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .crud-btn {
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            color: #f0f4f8;
+            padding: 0 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .crud-btn:hover:not(:disabled) {
+            background: rgba(78, 205, 196, 0.12);
+            border-color: rgba(78, 205, 196, 0.4);
+        }
+
+        .crud-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .crud-btn.primary {
+            color: #061018;
+            border-color: #4ecdc4;
+            background: #4ecdc4;
+            font-weight: 600;
+        }
+
+        .crud-btn.primary:hover:not(:disabled) {
+            background: #7ee8e0;
+            border-color: #7ee8e0;
+        }
+
+        .crud-btn.success {
+            color: #fff;
+            border-color: #2c7be5;
+            background: #2c7be5;
+        }
+
+        .crud-btn.success:hover:not(:disabled) {
+            background: #3b8af0;
+            border-color: #3b8af0;
+        }
+
+        .crud-table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgba(78, 205, 196, 0.22);
+            border-radius: 8px;
+            background: rgba(6, 8, 18, 0.55);
+        }
+
+        .crud-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+            color: #f0f4f8;
+        }
+
+        .crud-table th,
+        .crud-table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 12px;
+            font-size: 13px;
+            text-align: left;
+            color: #f0f4f8;
+        }
+
+        .crud-table th {
+            background: rgba(78, 205, 196, 0.08);
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+
+        .crud-table tbody tr:hover td {
+            background: rgba(78, 205, 196, 0.06);
+        }
+
+        .crud-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .crud-pager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 4px;
+            font-size: 14px;
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .crud-op {
+            border: none;
+            background: transparent;
+            color: #7ee8e0;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+
+        .crud-op:hover {
+            color: #4ecdc4;
+            text-decoration: underline;
+        }
+
+        .crud-op.del {
+            color: #f87171;
+        }
+
+        .crud-op.del:hover {
+            color: #ef4444;
+        }
+
+        .admin-modal-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 20, 45, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .admin-modal {
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.98), rgba(10, 16, 32, 0.96));
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 14px;
+            padding: 24px 28px;
+            width: 520px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.38);
+            color: #f0f4f8;
+        }
+
+        .admin-modal-wide {
+            width: 560px;
+        }
+
+        .admin-modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .admin-modal-head h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 18px;
+        }
+
+        .admin-modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: rgba(240, 244, 248, 0.55);
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .admin-modal-close:hover {
+            color: #7ee8e0;
+        }
+
+        .admin-modal-field {
+            margin-bottom: 16px;
+        }
+
+        .admin-modal-field label {
+            display: block;
+            font-size: 12px;
+            color: #7ee8e0;
+            margin-bottom: 6px;
+        }
+
+        .admin-modal-field input,
+        .admin-modal-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.4);
+            color: #f0f4f8;
+            outline: none;
+        }
+
+        .admin-modal-field input:focus,
+        .admin-modal-field textarea:focus {
+            border-color: rgba(78, 205, 196, 0.55);
+        }
+
+        .admin-modal-field input::placeholder,
+        .admin-modal-field textarea::placeholder {
+            color: rgba(240, 244, 248, 0.4);
+        }
+
+        .admin-modal-field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .admin-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .admin-announce-item {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-announce-item:last-of-type {
+            border-bottom: none;
+        }
+
+        .admin-announce-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f4f8;
+            margin-bottom: 6px;
+        }
+
+        .admin-announce-body {
+            font-size: 13px;
+            color: rgba(240, 244, 248, 0.78);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .admin-announce-meta {
+            font-size: 11px;
+            color: rgba(240, 244, 248, 0.45);
+            margin-top: 6px;
+        }
+
+        .admin-data-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 16px;
+        }
+
+        .table-nav {
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 16, 32, 0.92));
+            padding: 10px;
+            max-height: 640px;
+            overflow: auto;
+        }
+
+        .table-nav h4 {
+            margin: 0 0 8px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .table-link {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: transparent;
+            padding: 8px 9px 8px 12px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            color: rgba(240, 244, 248, 0.78);
+            position: relative;
+        }
+
+        .table-link::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 3px;
+            height: 0;
+            border-radius: 2px;
+            background: #4ecdc4;
+            transform: translateY(-50%);
+            transition: height 0.18s ease;
+        }
+
+        .table-link:hover {
+            background: rgba(78, 205, 196, 0.08);
+            color: #7ee8e0;
+        }
+
+        .table-link.active {
+            background: rgba(78, 205, 196, 0.12);
+            border-color: rgba(78, 205, 196, 0.28);
+            color: #4ecdc4;
+        }
+
+        .table-link.active::before {
+            height: 60%;
+        }
+
+        @media (max-width: 920px) {
+            .home-left-stack {
+                left: 10px;
+                top: 70px;
+                bottom: 14px;
+                width: min(100%, calc(100vw - 20px));
+                gap: 14px;
+            }
+            .home-panels-row {
+                flex-direction: column;
+            }
+            .home-carousel {
+                height: 200px;
+            }
+            .home-floating-panel {
+                padding: 16px 18px 18px;
+            }
+            .fui-panel-head h3 {
+                font-size: 15px;
+                letter-spacing: 0.08em;
+            }
+            #home-bg-frame {
+                transform: translateX(18vw);
+            }
+            .fui-auth-modal .auth-content { grid-template-columns: 1fr; }
+            .fui-auth-modal .auth-role-panel { display: none; }
+            .fui-auth-modal .form-side { margin: 0; border-radius: 0; border: none; }
+            .admin-data-layout { grid-template-columns: 1fr; }
+            .main-layout.active { grid-template-columns: 1fr; }
+            .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+            .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .dash-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .dash-main-grid { grid-template-columns: 1fr; }
+            .dash-panels { grid-template-columns: 1fr; }
+        }
+    
+
+</style>
+<link rel="stylesheet" href="css/home-med-tech.css?v=uiplan1">
+<script src="js/ui-enhance.js?v=1"></script>
+</head>
+<body>
+<canvas id="med-three-canvas" aria-hidden="true"></canvas>
+<div class="container">
+    <div class="topbar" id="site-topbar">
+        <div class="brand">
+            <span class="brand-mark-home" aria-hidden="true"></span>
+            <div>
+                <h1>医疗门诊系统</h1>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div id="weather-tips" class="home-weather-chip-wrap" aria-live="polite"></div>
+            <button class="home-lang-btn" id="home-lang-toggle" type="button">English</button>
+            <div class="home-role-glass" id="home-role-wrap">
+                <button class="home-role-trigger" id="home-role-btn" type="button" aria-haspopup="true" aria-expanded="false">
+                    <span id="home-role-btn-label">患者 / 医生 / 管理员</span>
+                    <span aria-hidden="true">▾</span>
+                </button>
+                <div class="home-role-menu" id="home-role-menu" role="menu">
+                    <button type="button" role="menuitem" data-home-role="patient" id="home-enter-patient">患者版</button>
+                    <button type="button" role="menuitem" data-home-role="doctor" id="home-enter-doctor">医生版</button>
+                    <button type="button" role="menuitem" data-home-role="admin" id="home-enter-admin">管理员</button>
+                </div>
+            </div>
+            <div class="user-menu" id="user-menu">
+                <div class="user-chip" id="user-chip">
+                    <span class="avatar-dot" id="top-avatar-dot">患</span>
+                    <span id="top-user-name">患者</span>
+                </div>
+                <div class="user-dropdown">
+                    <div class="user-summary">
+                        <strong id="top-summary-name">未登录</strong>
+                        <span id="top-summary-line">患者中心 · AI小建议与病历管理</span>
+                    </div>
+                    <button class="user-menu-btn" type="button" id="menu-ai">AI小建议</button>
+                    <button class="user-menu-btn" type="button" id="menu-consult">在线咨询</button>
+                    <button class="user-menu-btn" type="button" id="menu-record">我的病历</button>
+                    <button class="user-menu-btn" type="button" id="menu-profile">账号信息</button>
+                    <button class="user-menu-btn logout" type="button" id="top-logout-btn">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="patient-home" id="patient-home">
+        <div class="home-hero" id="home-hero">
+            <div class="home-hero-layout">
+                <div class="home-hero-inner home-copy-fade" id="home-hero-copy">
+                    <p class="home-hero-kicker" id="home-hero-kicker">Genetic Health</p>
+                    <h1 class="home-hero-title" id="home-hero-title">智慧门诊系统<span class="home-title-en">Smart Clinic</span></h1>
+                    <p class="home-hero-lead" id="home-hero-lead">将鼠标移到右侧 DNA 粒子上，感受分散与局部放大交互。</p>
+                    <div class="home-hero-cta">
+                        <button type="button" class="home-btn home-btn-primary" data-home-action="patient" id="home-cta-start">开始使用</button>
+                        <button type="button" class="home-btn home-btn-ghost" data-home-action="doctor" id="home-cta-doctor">医生入口</button>
+                    </div>
+                </div>
+                <div class="home-hero-stage" aria-hidden="true"></div>
+            </div>
+            <a class="home-scroll-cue" href="#home-features" id="home-scroll-cue" aria-label="向下探索">
+                <span id="home-scroll-label">向下探索</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+        </div>
+
+        <div class="home-below">
+            <section class="home-block" id="home-features">
+                <header class="home-block-head">
+                    <h2 id="home-features-title">核心能力</h2>
+                    <p id="home-features-desc">向下了解系统模块，点击进入对应服务。</p>
+                </header>
+                <div class="home-feature-grid">
+                    <a class="home-feature-card" href="chat.html" id="home-link-chat">
+                        <span class="home-feature-tag">AI</span>
+                        <h3 id="home-feat-ai-title">智能导诊</h3>
+                        <p id="home-feat-ai-desc">症状分析与科室推荐，快速找到合适医生。</p>
+                    </a>
+                    <button type="button" class="home-feature-card" data-home-action="patient" id="home-link-register">
+                        <span class="home-feature-tag">预约</span>
+                        <h3 id="home-feat-reg-title">在线挂号</h3>
+                        <p id="home-feat-reg-desc">选择科室与时段，减少排队等待时间。</p>
+                    </button>
+                    <button type="button" class="home-feature-card" data-home-action="patient" id="home-link-records">
+                        <span class="home-feature-tag">数据</span>
+                        <h3 id="home-feat-rec-title">病历管理</h3>
+                        <p id="home-feat-rec-desc">就诊记录、检查报告与处方，一处查看。</p>
+                    </button>
+                </div>
+            </section>
+
+            <section class="home-block home-block-services" id="home-services">
+                <header class="home-block-head">
+                    <h2 id="home-services-title">在线服务</h2>
+                    <p id="home-services-desc">需要留言或 AI 建议？在此提交，或登录后进入完整工作台。</p>
+                </header>
+                <div class="home-services-grid">
+                    <aside class="home-service-panel home-consult-dock" aria-label="Online consultation">
+                        <header class="home-service-head">
+                            <h3 id="home-consult-title">问诊留言</h3>
+                        </header>
+                        <p class="home-service-hint" id="home-consult-hint">提交留言后，工作人员将尽快与您联系。</p>
+                        <form id="consult-form" class="online-form">
+                            <div>
+                                <label for="consult-name" id="home-c-name-label">称呼</label>
+                                <input id="consult-name" type="text" placeholder="您的称呼">
+                            </div>
+                            <div>
+                                <label for="consult-phone" id="home-c-phone-label">联系电话</label>
+                                <input id="consult-phone" type="text" placeholder="手机号码">
+                            </div>
+                            <div>
+                                <label for="consult-content" id="home-c-content-label">咨询内容</label>
+                                <textarea id="consult-content" placeholder="请简要描述您的问题"></textarea>
+                            </div>
+                            <button class="submit-btn" id="consult-submit-btn" type="button">提交咨询</button>
+                            <div class="result" id="consult-result"></div>
+                        </form>
+                    </aside>
+
+                    <aside class="home-service-panel home-ai-dock" aria-label="AI health suggestions">
+                        <header class="home-service-head">
+                            <h3 id="home-ai-title">AI 健康建议</h3>
+                        </header>
+                        <p class="home-service-hint" id="home-ai-hint">输入症状或健康疑问，获取仅供参考的初步建议。</p>
+                        <div class="consult-list" id="ai-quick-list"></div>
+                        <label for="ai-question" id="home-ai-q-label">问题描述</label>
+                        <textarea id="ai-question" placeholder="例如：近期头晕乏力，需要注意什么？"></textarea>
+                        <button class="submit-btn" id="ai-suggest-btn" type="button">获取建议</button>
+                        <div class="result" id="ai-result"></div>
+                    </aside>
+                </div>
+            </section>
+        </div>
+
+        <div class="home-hidden-tools"></div>
+    </section>
+
+    <section class="main-layout" id="main-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-mark">医</div>
+                <div>
+                    <h3>医疗系统</h3>
+                    <p>管理中心</p>
+                </div>
+            </div>
+            <div class="menu-list" id="menu-list"></div>
+            <button class="logout-btn" id="logout-btn" type="button">退出登录</button>
+        </aside>
+        <section class="workspace">
+            <header class="workspace-topbar">
+                <div>
+                    <h2 id="role-title">角色页面</h2>
+                    <p id="role-subtitle">欢迎使用系统</p>
+                </div>
+                <div class="workspace-user">
+                    <span class="avatar-dot">管</span>
+                    <span id="current-user-name">未登录</span>
+                </div>
+            </header>
+            <div class="content" id="content-area"></div>
+        </section>
+    </section>
+</div>
+
+<div class="auth-mask" id="auth-mask">
+    <section class="auth-modal fui-auth-modal">
+        <button class="close-btn" id="close-auth-btn" type="button">×</button>
+        <div class="auth-content">
+            <div class="auth-role-panel" id="auth-role-panel" data-active="patient">
+                <div class="role-panel-title">选择身份</div>
+                <button class="role-card-btn" data-role="patient" type="button">
+                    <div class="role-icon">🏥</div>
+                    <div class="role-label">患者</div>
+                    <div class="role-sub">在线问诊·预约挂号</div>
+                </button>
+                <button class="role-card-btn" data-role="doctor" type="button">
+                    <div class="role-icon">🩺</div>
+                    <div class="role-label">医生</div>
+                    <div class="role-sub">接诊管理·病历处方</div>
+                </button>
+                <button class="role-card-btn" data-role="admin" type="button">
+                    <div class="role-icon">⚙️</div>
+                    <div class="role-label">管理员</div>
+                    <div class="role-sub">系统配置·数据管理</div>
+                </button>
+            </div>
+            <div class="form-side" id="form-side">
+                <div class="auth-role-head">
+                    <h3 id="auth-role-title">患者登录</h3>
+                    <p id="auth-role-desc">请选择对应角色后进行账号登录</p>
+                </div>
+
+                <div class="auth-switch">
+                    <button class="auth-tab active" id="show-login" type="button">密码登录</button>
+                    <button class="auth-tab" id="show-register" type="button">注册账号</button>
+                </div>
+
+                <form class="form-grid" id="login-form">
+                    <input id="login-account" name="username" type="text" placeholder="请输入账号" autocomplete="username">
+                    <input id="login-password" name="password" type="password" placeholder="请输入密码" autocomplete="current-password">
+                    <div class="captcha-row">
+                        <input id="login-captcha" type="text" placeholder="请输入验证码">
+                        <div class="captcha-wrap">
+                            <canvas id="captcha-canvas" class="captcha-canvas" width="110" height="40" title="点击刷新验证码"></canvas>
+                            <button class="captcha-refresh-btn" id="captcha-refresh-btn" type="button">换一张</button>
+                        </div>
+                    </div>
+                    <div class="email-code-row" id="patient-email-code-row" style="display:none;">
+                        <input id="login-email-code" type="text" maxlength="6" placeholder="请输入邮箱验证码" autocomplete="one-time-code">
+                        <button id="send-email-code-btn" type="button">发送验证码</button>
+                    </div>
+                </form>
+
+                <form class="form-grid" id="register-form" style="display:none;">
+                    <input id="register-account" type="text" placeholder="请输入注册账号">
+                    <input id="register-password" type="password" placeholder="请输入注册密码">
+                    <input id="register-name" type="text" placeholder="请输入姓名">
+                    <input id="register-phone" type="text" placeholder="请输入手机号">
+                    <input id="register-email" type="email" placeholder="请输入邮箱（用于挂号通知与登录验证码）" style="display:none;">
+                </form>
+
+                <div class="actions">
+                    <button class="btn" id="confirm-btn" type="button">登录</button>
+                    <button class="btn btn-outline" id="clear-btn" type="button">清空</button>
+                </div>
+                <div class="result" id="auth-result"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="bind-email-mask" id="bind-email-mask" aria-hidden="true">
+    <div class="bind-email-dialog" role="dialog" aria-labelledby="bind-email-title">
+        <h3 id="bind-email-title">完善邮箱信息</h3>
+        <p>您的账号尚未绑定邮箱。请填写常用邮箱并保存，下次登录将通过邮箱验证码验证身份，同时用于接收挂号与缴费通知。</p>
+        <input id="bind-email-input" type="email" placeholder="请输入常用邮箱">
+        <div class="bind-email-actions">
+            <button type="button" class="bind-email-save" id="bind-email-save">保存邮箱</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="js/home-particle-effect.js?v=20260720darkTheme"></script>
+<script src="js/weather-tips.js?v=chip1"></script>
+<script>
+// Restored full role pages + dashboard(ECharts) + CRUD + AI upload logic
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const payFeeId = urlParams.get('payFeeId');
+  if (payFeeId) {
+    fetch('/doctor/feeInfo/updatePayStatus', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ feeId: parseInt(payFeeId), payStatus: 1 })
+    }).then(response => response.json()).then(data => {
+      if (data.code === 1) {
+        alert('支付成功！');
+      } else {
+        alert('支付处理失败，请重试');
+      }
+    }).catch(err => {
+      console.error('支付状态更新失败:', err);
+      alert('支付处理失败，请重试');
+    });
+    urlParams.delete('payFeeId');
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  const patientHome = $("patient-home");
+  const mainLayout = $("main-layout");
+  const menuList = $("menu-list");
+  const roleTitle = $("role-title");
+  const roleSubtitle = $("role-subtitle");
+  const contentArea = $("content-area");
+  const homeBgFrame = $("home-bg-frame");
+  if (homeBgFrame) {
+    homeBgFrame.addEventListener("error", () => {
+      homeBgFrame.style.display = "none";
+    });
+  }
+
+  const authMask = $("auth-mask");
+  const siteTopbar = $("site-topbar");
+
+  const userMenu = $("user-menu");
+  const userChip = $("user-chip");
+  const topUserName = $("top-user-name");
+  const topSummaryName = $("top-summary-name");
+  const topAvatarDot = $("top-avatar-dot");
+  const menuAi = $("menu-ai");
+  const menuConsult = $("menu-consult");
+  const menuRecord = $("menu-record");
+  const menuProfile = $("menu-profile");
+  const topLogoutBtn = $("top-logout-btn");
+  const logoutBtn = $("logout-btn");
+  const currentUserName = $("current-user-name");
+
+  const closeAuthBtn = $("close-auth-btn");
+  const authRoleTitle = $("auth-role-title");
+  const authRoleDesc = $("auth-role-desc");
+  const showLoginBtn = $("show-login");
+  const showRegisterBtn = $("show-register");
+  const confirmBtn = $("confirm-btn");
+  const clearBtn = $("clear-btn");
+  const authResult = $("auth-result");
+
+  const loginForm = $("login-form");
+  const registerForm = $("register-form");
+  const loginAccount = $("login-account");
+  const loginPassword = $("login-password");
+  const loginCaptcha = $("login-captcha");
+  const captchaCanvas = $("captcha-canvas");
+  const captchaRefreshBtn = $("captcha-refresh-btn");
+  const registerAccount = $("register-account");
+  const registerPassword = $("register-password");
+  const registerName = $("register-name");
+  const registerPhone = $("register-phone");
+  const registerEmail = $("register-email");
+  const loginEmailCode = $("login-email-code");
+  const patientEmailCodeRow = $("patient-email-code-row");
+  const sendEmailCodeBtn = $("send-email-code-btn");
+  const bindEmailMask = $("bind-email-mask");
+  const bindEmailInput = $("bind-email-input");
+  const bindEmailSave = $("bind-email-save");
+  let emailCodeCountdownTimer = null;
+  let emailCodeCountdownLeft = 0;
+  let typedLoginPassword = "";
+  let accountHasBoundEmail = false;
+
+  const consultSubmitBtn = $("consult-submit-btn");
+  const consultResult = $("consult-result");
+  const consultName = $("consult-name");
+  const consultPhone = $("consult-phone");
+  const consultContent = $("consult-content");
+
+  const aiSuggestBtn = $("ai-suggest-btn");
+  const aiQuestion = $("ai-question");
+  const aiResult = $("ai-result");
+  const aiQuickList = $("ai-quick-list");
+
+  let currentLoginUser = null;
+  let pendingAiConsult = null;
+  let currentRole = "patient";
+  let currentMode = "login";
+  let currentCaptcha = "";
+
+  const apiBase = () => "/doctor";
+
+  const roleConfig = {
+    admin: {
+      title: "管理中心",
+      subtitle: "系统概览",
+      roleType: 0,
+      color: "#3f51b5",
+      soft: "#eef1ff",
+      menus: [
+        { group: "工作台", name: "系统概览", action: "dashboard" },
+        {
+          group: "系统配置",
+          name: "用户管理",
+          children: [
+            { name: "管理员设置", action: "userAdmin" },
+            { name: "患者管理", action: "userPatient" },
+            { name: "医生管理", action: "userDoctor" }
+          ]
+        },
+        {
+          group: "基础信息管理",
+          name: "基础信息",
+          children: [
+            { name: "科室管理", action: "deptTable" },
+            { name: "药品管理", action: "medicineTable" },
+            { name: "收费管理", action: "feeTable" }
+          ]
+        },
+        {
+          group: "业务信息管理",
+          name: "业务信息",
+          children: [
+            { name: "挂号管理", action: "registerTable" },
+            { name: "咨询管理", action: "consultTable" },
+            { name: "检查管理", action: "checkTable" },
+            { name: "病历管理", action: "recordTable" },
+            { name: "留言管理", action: "messageTable" },
+            { name: "处方明细管理", action: "presDetailTable" },
+            { name: "公告管理", action: "announcementTable" }
+          ]
+        },
+        {
+          group: "系统工具",
+          name: "系统维护",
+          children: [
+            { name: "系统维护", action: "adminTables" }
+          ]
+        }
+      ]
+    },
+    doctor: {
+      title: "医生工作台",
+      subtitle: "接诊、开方、患者随访",
+      roleType: 1,
+      color: "#ff7043",
+      soft: "#fff0ea",
+      menus: [
+        { name: "工作台", action: "doctorDashboard" },
+        { name: "接诊管理", action: "registerTable" },
+        { name: "病历管理", action: "recordTable" },
+        { name: "咨询管理", action: "consultTable" },
+        { name: "留言管理", action: "messageTable" }
+      ]
+    },
+    patient: {
+      title: "患者服务中心",
+      subtitle: "预约、咨询、健康记录",
+      roleType: 2,
+      color: "#009688",
+      soft: "#e9faf7",
+      menus: []
+    }
+  };
+
+  const crudGroups = {
+    main: [
+      { title: "用户", path: "userInfo", idField: "userId" },
+      { title: "科室", path: "deptInfo", idField: "deptId" },
+      { title: "医生", path: "doctorInfo", idField: "doctorId" },
+      { title: "患者", path: "patientInfo", idField: "patientId" },
+      { title: "药品", path: "medicineInfo", idField: "medicineId" },
+      { title: "收费", path: "feeInfo", idField: "feeId" }
+    ],
+    sub: [
+      { title: "留言", path: "messageInfo", idField: "msgId" },
+      { title: "咨询", path: "consultInfo", idField: "consultId" },
+      { title: "检查", path: "checkInfo", idField: "checkId" },
+      { title: "病历", path: "recordInfo", idField: "recordId" },
+      { title: "挂号", path: "registerInfo", idField: "registerId" },
+      { title: "处方明细", path: "presDetailInfo", idField: "detailId" },
+      { title: "公告", path: "announcementInfo", idField: "announcementId" }
+    ]
+  };
+
+  const allCrudTables = [...crudGroups.main, ...crudGroups.sub];
+  const tableKeysCache = {};
+
+  const aiQuickQuestionPool = [
+    "发热伴随咽痛和头痛三天，需要先做哪些检查？",
+    "胸闷心慌反复出现，是否需要尽快去急诊？",
+    "血压连续一周偏高，日常应该如何调整？",
+    "最近夜间咳嗽明显加重，应该挂什么科？",
+    "胃痛伴反酸两周，是否需要做胃镜检查？",
+    "运动后膝关节肿痛，先冰敷还是热敷？",
+    "长期失眠焦虑，如何判断是否需要就医？",
+    "体检发现血糖偏高，下一步要做什么？"
+  ];
+
+  const showResult = (box, ok, text) => {
+    if (!box) return;
+    box.className = ok ? "result success" : "result warn";
+    box.textContent = text;
+  };
+
+  const escapeHtml = (text) =>
+    String(text == null ? "" : text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  // 字段中文映射（表头统一中文）
+  const fieldLabelMap = {
+    // user
+    userId: "用户ID",
+    username: "账号",
+    password: "密码",
+    passwordLen: "密码长度",
+    passwordLength: "密码长度",
+    realName: "姓名",
+    phone: "手机号",
+    email: "邮箱",
+    roleType: "角色类型",
+    loginTime: "登录时间",
+    status: "状态",
+    createTime: "创建时间",
+    updateTime: "更新时间",
+
+    // dept
+    deptId: "科室ID",
+    deptName: "科室名称",
+    deptDesc: "科室简介",
+    deptPhone: "科室电话",
+    location: "科室位置",
+
+    // doctor
+    doctorId: "医生ID",
+    doctorName: "医生姓名",
+    title: "职称",
+    specialty: "专业方向",
+    workTime: "出诊时间",
+
+    // patient
+    patientId: "患者ID",
+    patientName: "患者姓名",
+    idCard: "身份证号",
+    gender: "性别",
+    age: "年龄",
+    address: "地址",
+    history: "病史",
+
+    // medicine
+    medicineId: "药品ID",
+    medicineName: "药品名称",
+    medName: "药品名称",
+    spec: "规格",
+    unit: "单位",
+    price: "单价",
+    stock: "库存",
+    manufacturer: "生产厂家",
+    effect: "功效",
+    baseUsage: "基础用法",
+
+    // fee
+    feeId: "费用ID",
+    feeName: "费用名称",
+    feeType: "费用类型",
+    amount: "金额",
+    payTime: "支付时间",
+    payStatus: "支付状态",
+    payMethod: "支付方式",
+
+    // message
+    msgId: "留言ID",
+    msgContent: "留言内容",
+    msgTime: "留言时间",
+    senderId: "发送者ID",
+    receiverId: "接收者ID",
+
+    // consult
+    consultId: "咨询ID",
+    content: "咨询内容",
+    reply: "医生回复",
+    consultTime: "咨询时间",
+    replyTime: "回复时间",
+    consultStatus: "咨询状态",
+
+    // check
+    checkId: "检查ID",
+    checkName: "检查名称",
+    checkTime: "检查时间",
+    result: "检查结果",
+    checkStatus: "检查状态",
+    checkFee: "检查费用",
+
+    // record
+    recordId: "病历ID",
+    recordNo: "病历编号",
+    recordTime: "病历时间",
+    chiefComplaint: "主诉",
+    diagnosis: "诊断结论",
+    treatment: "治疗建议",
+    followUp: "随访计划",
+    presNo: "处方编号",
+    presDate: "开方日期",
+    presUsage: "处方用法",
+
+    // register
+    registerId: "挂号ID",
+    regNo: "挂号编号",
+    regTime: "挂号时间",
+    visitTime: "就诊时间",
+    regStatus: "挂号状态",
+    fee: "挂号费用",
+
+    // pres detail
+    detailId: "处方明细ID",
+    quantity: "数量",
+
+    // announcement
+    announcementId: "公告ID",
+    authorId: "发布人ID",
+    authorName: "发布人",
+    createTime: "发布时间",
+    status: "状态",
+    title: "公告标题",
+    content: "公告内容"
+  };
+
+  const getFieldLabel = (key) => fieldLabelMap[key] || key;
+
+  const maskPasswordValue = (value, row) => {
+    if (value == null || value === "") return "";
+    const lengthKeyList = ["passwordLength", "passwordLen", "pwdLength", "pwdLen"];
+    for (let i = 0; i < lengthKeyList.length; i++) {
+      const len = Number(row && row[lengthKeyList[i]]);
+      if (!Number.isNaN(len) && len > 0) return "*".repeat(len);
+    }
+    const text = String(value);
+    if (text.length >= 20) return "********";
+    return "*".repeat(text.length);
+  };
+
+  const formatCellValue = (key, value, row) => {
+    if (key === "password") return maskPasswordValue(value, row);
+    return value == null ? "" : String(value);
+  };
+
+  const setRoleTheme = () => {
+    const c = roleConfig[currentRole];
+    document.documentElement.style.setProperty("--role-color", c.color);
+    document.documentElement.style.setProperty("--role-soft", c.soft);
+    const rolePanel = $("auth-role-panel");
+    const formSide = $("form-side");
+    if (rolePanel) rolePanel.setAttribute("data-active", currentRole);
+    const accentMap = {
+      patient: { accent: "#2b78d6", soft: "#e8f4fd" },
+      doctor: { accent: "#2d6a4f", soft: "#d8f3e8" },
+      admin: { accent: "#b45309", soft: "#fef3c7" }
+    };
+    const a = accentMap[currentRole] || accentMap.patient;
+    if (formSide) {
+      formSide.style.setProperty("--auth-accent", a.accent);
+      formSide.style.setProperty("--auth-accent-soft", a.soft);
+    }
+    authRoleTitle.textContent = currentRole === "admin" ? "管理员登录" : currentRole === "doctor" ? "医生登录" : "患者登录";
+    authRoleDesc.textContent = "请选择对应角色后进行账号登录";
+    showRegisterBtn.disabled = false;
+    showRegisterBtn.style.opacity = "1";
+    showRegisterBtn.style.cursor = "pointer";
+    syncPatientEmailUi();
+  };
+
+  const syncPatientEmailUi = () => {
+    const isPatient = currentRole === "patient";
+    if (patientEmailCodeRow) patientEmailCodeRow.style.display = "none";
+    if (registerEmail) {
+      registerEmail.style.display = isPatient ? "block" : "none";
+      if (!isPatient) registerEmail.value = "";
+    }
+    if (!isPatient && loginEmailCode) loginEmailCode.value = "";
+    accountHasBoundEmail = false;
+    if (isPatient) probePatientEmailRequirement();
+  };
+
+  const lookupUserByUsername = async (account) => {
+    if (!account) return null;
+    const userQuery = await fetchJsonSafe(apiBase() + "/userInfo/queryByPage?page=1&size=1&username=" + encodeURIComponent(account));
+    if (!userQuery || userQuery._fatal || userQuery.code !== 1) return null;
+    const matchedList = userQuery.content && userQuery.content.content ? userQuery.content.content : [];
+    return matchedList.find((u) => String(u.username) === account) || matchedList[0] || null;
+  };
+
+  const probePatientEmailRequirement = async () => {
+    if (currentRole !== "patient" || !patientEmailCodeRow) {
+      accountHasBoundEmail = false;
+      if (patientEmailCodeRow) patientEmailCodeRow.style.display = "none";
+      return;
+    }
+    const account = loginAccount ? loginAccount.value.trim() : "";
+    if (!account) {
+      accountHasBoundEmail = false;
+      patientEmailCodeRow.style.display = "none";
+      return;
+    }
+    const user = await lookupUserByUsername(account);
+    if (!user) {
+      accountHasBoundEmail = false;
+      patientEmailCodeRow.style.display = "none";
+      return;
+    }
+    const hasEmail = !!(user.email && String(user.email).trim());
+    accountHasBoundEmail = hasEmail;
+    patientEmailCodeRow.style.display = hasEmail ? "grid" : "none";
+    if (!hasEmail && loginEmailCode) loginEmailCode.value = "";
+  };
+
+  const readLoginPassword = () => {
+    const live = document.getElementById("login-password");
+    const fromDom = live && typeof live.value === "string" ? live.value : "";
+    const v = fromDom || typedLoginPassword;
+    return String(v || "").trim();
+  };
+
+  const isValidEmailFormat = (email) => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test((email || "").trim())
+    && (email || "").trim().length <= 100;
+
+  const startEmailCodeCountdown = (seconds) => {
+    if (!sendEmailCodeBtn) return;
+    emailCodeCountdownLeft = seconds;
+    sendEmailCodeBtn.disabled = true;
+    const tick = () => {
+      if (emailCodeCountdownLeft <= 0) {
+        sendEmailCodeBtn.disabled = false;
+        sendEmailCodeBtn.textContent = "发送验证码";
+        if (emailCodeCountdownTimer) {
+          clearInterval(emailCodeCountdownTimer);
+          emailCodeCountdownTimer = null;
+        }
+        return;
+      }
+      sendEmailCodeBtn.textContent = "重新发送(" + emailCodeCountdownLeft + "s)";
+      emailCodeCountdownLeft -= 1;
+    };
+    tick();
+    if (emailCodeCountdownTimer) clearInterval(emailCodeCountdownTimer);
+    emailCodeCountdownTimer = setInterval(tick, 1000);
+  };
+
+  const sendLoginEmailCode = async () => {
+    const account = loginAccount.value.trim();
+    if (!account) return showResult(authResult, false, "请先填写账号。");
+    if (!accountHasBoundEmail) {
+      await probePatientEmailRequirement();
+    }
+    if (!accountHasBoundEmail) {
+      return showResult(authResult, false, "该账号尚未绑定邮箱，请直接登录，进入系统后再补填。");
+    }
+    const res = await fetchJsonSafe(apiBase() + "/userInfo/sendEmailCode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: account })
+    });
+    if (res && res._fatal) return showResult(authResult, false, res.msg);
+    if (!res || res.code !== 1) return showResult(authResult, false, (res && res.msg) || "验证码发送失败");
+    startEmailCodeCountdown(60);
+    const masked = res.content && res.content.emailMasked ? res.content.emailMasked : "注册邮箱";
+    showResult(authResult, true, "验证码已发送至 " + masked + "，请查收。");
+  };
+
+  const openBindEmailModal = () => {
+    if (!bindEmailMask) return;
+    if (bindEmailInput) bindEmailInput.value = "";
+    bindEmailMask.classList.add("open");
+    bindEmailMask.setAttribute("aria-hidden", "false");
+  };
+
+  const closeBindEmailModal = () => {
+    if (!bindEmailMask) return;
+    bindEmailMask.classList.remove("open");
+    bindEmailMask.setAttribute("aria-hidden", "true");
+  };
+
+  const saveBindEmail = async () => {
+    const email = bindEmailInput ? bindEmailInput.value.trim() : "";
+    if (!isValidEmailFormat(email)) {
+      if (bindEmailInput) bindEmailInput.focus();
+      return alert("邮箱格式不正确");
+    }
+    const userId = currentLoginUser && currentLoginUser.userId;
+    if (userId == null) return alert("登录状态已失效，请重新登录后再绑定邮箱。");
+    const res = await fetchJsonSafe(apiBase() + "/userInfo/fillEmail", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, email })
+    });
+    if (res && res._fatal) return alert(res.msg || "邮箱保存失败");
+    if (!res || res.code !== 1) return alert((res && res.msg) || "邮箱保存失败");
+    currentLoginUser.email = email;
+    currentLoginUser.needBindEmail = false;
+    closeBindEmailModal();
+    alert("邮箱已保存。下次登录请使用邮箱验证码。");
+  };
+
+  const switchAuthMode = (mode) => {
+    currentMode = mode;
+    const isLogin = mode === "login";
+    showLoginBtn.classList.toggle("active", isLogin);
+    showRegisterBtn.classList.toggle("active", !isLogin);
+    loginForm.style.display = isLogin ? "grid" : "none";
+    registerForm.style.display = isLogin ? "none" : "grid";
+    confirmBtn.textContent = isLogin ? "登录" : "注册";
+    syncPatientEmailUi();
+  };
+
+  const openAuthModal = () => {
+    authMask.classList.add("open");
+    generateCaptcha();
+  };
+  const closeAuthModal = () => authMask.classList.remove("open");
+
+  const renderAiQuickButtons = () => {
+    const selected = aiQuickQuestionPool
+      .map((t) => ({ t, r: Math.random() }))
+      .sort((a, b) => a.r - b.r)
+      .slice(0, 3)
+      .map((x) => x.t);
+    aiQuickList.innerHTML = selected
+      .map((t) => "<button class='quick-ai-btn' type='button' data-ai-q='" + escapeHtml(t) + "'>" + escapeHtml(t) + "</button>")
+      .join("");
+    $$("[data-ai-q]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        aiQuestion.value = btn.getAttribute("data-ai-q") || "";
+        aiQuestion.focus();
+      });
+    });
+  };
+
+  const requestGet = async (url) =>
+    (await fetch(url, {
+      credentials: "include"
+    })).json();
+  const requestJson = async (url, payload) =>
+    (await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include"
+    })).json();
+
+  /** 登录等关键路径：捕获网络错误与非 JSON（如 500 错误页），便于排查数据库未连接等问题 */
+  const fetchJsonSafe = async (url, init) => {
+    let res;
+    try {
+      res = await fetch(url, Object.assign({ credentials: "include" }, init || {}));
+    } catch (e) {
+      return { code: 0, msg: "无法连接服务器，请确认已启动后端（端口与上下文 /doctor 一致）。", _fatal: true };
+    }
+    const raw = await res.text();
+    try {
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {
+        code: 0,
+        msg:
+          "服务异常（HTTP " +
+          res.status +
+          "），未收到有效 JSON。若控制台出现 CannotGetJdbcConnectionException，请启动 MySQL、创建库 hospital_db，并核对 application.properties 中 spring.datasource 用户名与密码。",
+        _fatal: true
+      };
+    }
+  };
+
+  const getNowText = () => {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, "0");
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  };
+
+  const resolvePatientIdByUserId = async (userId) => {
+    const data = await requestGet(apiBase() + "/patientInfo/queryByPage?page=1&size=1&userId=" + encodeURIComponent(userId));
+    const rows = data && data.code === 1 && data.content && data.content.content ? data.content.content : [];
+    return rows[0] ? rows[0].patientId : null;
+  };
+
+  const uploadAiRecord = async (question, suggestion) => {
+    const patientId = await resolvePatientIdByUserId(currentLoginUser.userId);
+    if (!patientId) return { ok: false, msg: "未找到当前患者档案，无法自动上传病历。" };
+    const payload = { recordNo: "AI-" + Date.now(), recordTime: getNowText(), chiefComplaint: question, diagnosis: suggestion, treatment: "AI初步建议，仅供参考，请线下就医进一步确诊。", followUp: "根据症状变化复诊或及时就医。", patientId };
+    const res = await requestJson(apiBase() + "/recordInfo/add", payload);
+    return res.code === 1 ? { ok: true, msg: "AI初判已自动上传到病历记录。" } : { ok: false, msg: res.msg || "病历上传失败，请稍后重试。" };
+  };
+
+  const handleAiConsultSubmit = async () => {
+    const q = aiQuestion.value.trim();
+    if (!q) return showResult(aiResult, false, "请先输入健康问题。");
+    const data = await requestJson(apiBase() + "/ai/suggest", { question: q });
+    const suggestion = data && data.content ? (data.content.suggestion || "") : "";
+    if (data.code !== 1) return showResult(aiResult, false, data.msg || "未获取到建议");
+    if (!suggestion) return showResult(aiResult, false, "未获取到建议，请稍后重试。");
+
+    if (currentLoginUser && Number(currentLoginUser.roleType) === 2) {
+      const up = await uploadAiRecord(q, suggestion);
+      return showResult(aiResult, up.ok, suggestion + "\n\n" + up.msg);
+    }
+
+    showResult(aiResult, true, suggestion + "\n\n提示：登录患者账号后可将问诊记录保存到病历。");
+  };
+
+  const homeRoleWrap = $("home-role-wrap");
+  const homeRoleBtn = $("home-role-btn");
+  const homeRoleMenu = $("home-role-menu");
+  const homeLangToggle = $("home-lang-toggle");
+
+  const closeHomeRoleMenu = () => {
+    if (!homeRoleWrap) return;
+    homeRoleWrap.classList.remove("open");
+    if (homeRoleBtn) homeRoleBtn.setAttribute("aria-expanded", "false");
+  };
+
+  const showPatientHomeAfterLogin = () => {
+    mainLayout.classList.remove("active");
+    siteTopbar.style.display = "flex";
+    patientHome.style.display = "block";
+    if (homeRoleWrap) homeRoleWrap.style.display = "none";
+    if (homeLangToggle) homeLangToggle.style.display = "inline-block";
+    userMenu.classList.add("active");
+    renderAiQuickButtons();
+    if (homeBgFrame) homeBgFrame.style.display = "block";
+  };
+  const showPublicHomeBeforeLogin = () => {
+    mainLayout.classList.remove("active");
+    siteTopbar.style.display = "flex";
+    patientHome.style.display = "block";
+    if (homeRoleWrap) homeRoleWrap.style.display = "block";
+    if (homeLangToggle) homeLangToggle.style.display = "inline-block";
+    userMenu.classList.remove("active");
+    if (homeBgFrame) homeBgFrame.style.display = "block";
+  };
+
+  const renderPatientMenuProfile = () => {
+    const name = currentLoginUser && (currentLoginUser.realName || currentLoginUser.username) ? (currentLoginUser.realName || currentLoginUser.username) : "患者";
+    topUserName.textContent = name;
+    topSummaryName.textContent = name;
+    topAvatarDot.textContent = (String(name).trim().charAt(0) || "患").toUpperCase();
+  };
+
+  // ---------------- Dashboard / ECharts ----------------
+  let echartsLoaderPromise = null;
+  let trendChart = null;
+
+  const loadScript = (src) =>
+    new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+  const ensureEcharts = async () => {
+    if (window.echarts) return window.echarts;
+    if (!echartsLoaderPromise) {
+      echartsLoaderPromise = (async () => {
+        const list = ["node_modules/echarts/dist/echarts.min.js", "/node_modules/echarts/dist/echarts.min.js", "https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"];
+        for (const url of list) {
+          try {
+            await loadScript(url);
+            if (window.echarts) return window.echarts;
+          } catch {
+            // next
+          }
+        }
+        throw new Error("echarts load failed");
+      })();
+    }
+    return echartsLoaderPromise;
+  };
+
+  const ymd = (d) => {
+    const p = (n) => String(n).padStart(2, "0");
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  };
+  const last7 = () => {
+    const t = new Date();
+    const r = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(t);
+      d.setDate(t.getDate() - i);
+      r.push(ymd(d));
+    }
+    return r;
+  };
+  const dateKey = (v) => {
+    const s = String(v || "").trim();
+    return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : "";
+  };
+  const countByDay = (rows, field, days) => {
+    const m = {};
+    days.forEach((k) => (m[k] = 0));
+    (rows || []).forEach((row) => {
+      const k = dateKey(row[field]);
+      if (m[k] != null) m[k] += 1;
+    });
+    return m;
+  };
+
+  // 每日接待患者数：优先按 patientId 去重（没有则退化为按记录数）
+  const countUniquePatientsByDay = (rows, dateField, days) => {
+    const map = {};
+    days.forEach((k) => (map[k] = new Set()));
+    (rows || []).forEach((row) => {
+      const k = dateKey(row[dateField]);
+      if (!map[k]) return;
+      const pid = row.patientId ?? row.patient_id ?? row.patientID ?? row.userId ?? row.user_id ?? row.registerId;
+      map[k].add(String(pid));
+    });
+    const out = {};
+    days.forEach((k) => (out[k] = map[k].size));
+    return out;
+  };
+
+    window.navigateTo = (table) => {
+    document.querySelectorAll(".sidebar-item").forEach((el) => el.classList.remove("active"));
+    const menuMap = {
+      consultTable: "consultInfo", doctorTable: "doctorInfo",
+      userInfo: "userInfo", doctorInfo: "doctorInfo"
+    };
+    const target = menuMap[table] || table;
+    const sidebarLink = document.querySelector(`.sidebar-item[onclick*="'` + target + `'"]`);
+    if (sidebarLink) sidebarLink.click();
+    else router("crudSub", null, table);
+  };
+
+    window.openAnnounceModal = () => {
+    const modal = document.getElementById("announce-modal");
+    if (!modal) {
+      document.body.insertAdjacentHTML("beforeend",
+        "<div id='announce-modal' class='admin-modal-mask'>" +
+        "<div class='admin-modal'>" +
+        "<div class='admin-modal-head'>" +
+        "<h3>发布公告</h3>" +
+        "<button type='button' class='admin-modal-close' onclick='closeAnnounceModal()' aria-label='关闭'>&times;</button></div>" +
+        "<div class='admin-modal-field'><label for='ann-title'>公告标题</label>" +
+        "<input id='ann-title' placeholder='请输入公告标题'></div>" +
+        "<div class='admin-modal-field'><label for='ann-content'>公告内容</label>" +
+        "<textarea id='ann-content' placeholder='请输入公告内容'></textarea></div>" +
+        "<div class='admin-modal-actions'>" +
+        "<button type='button' class='crud-btn' onclick='closeAnnounceModal()'>取消</button>" +
+        "<button type='button' class='crud-btn primary' onclick='submitAnnouncement()'>发布</button></div></div></div>"
+      );
+    }
+    document.getElementById("announce-modal").style.display = "flex";
+  };
+
+  window.closeAnnounceModal = () => {
+    const modal = document.getElementById("announce-modal");
+    if (modal) modal.style.display = "none";
+  };
+
+  window.submitAnnouncement = async () => {
+    const title = document.getElementById("ann-title").value.trim();
+    const content = document.getElementById("ann-content").value.trim();
+    if (!title || !content) { alert("请填写标题和内容"); return; }
+    const uid = currentLoginUser ? currentLoginUser.userId : null;
+    const uname = currentLoginUser ? (currentLoginUser.realName || currentLoginUser.username) : "管理员";
+    try {
+      const res = await requestJson(apiBase() + "/announcementInfo/add", {
+        title, content, authorId: uid, authorName: uname,
+        createTime: new Date().toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-"), status: 1
+      });
+      if (res && res.code === 1) {
+        alert("公告发布成功");
+        closeAnnounceModal();
+      } else { alert(res && res.msg || "发布失败"); }
+    } catch(e) { alert("网络错误"); }
+  };
+
+  window.showLoginAnnouncements = async () => {
+    try {
+      const res = await requestGet(apiBase() + "/announcementInfo/queryByPage?page=1&size=5");
+      const list = res && res.code === 1 && res.content && res.content.content ? res.content.content : [];
+      if (!list || list.length === 0) return;
+      const html = list.map(a =>
+        "<div class='admin-announce-item'>" +
+        "<div class='admin-announce-title'>" + escapeHtml(a.title || "") + "</div>" +
+        "<div class='admin-announce-body'>" + escapeHtml(a.content || "") + "</div>" +
+        "<div class='admin-announce-meta'>" + escapeHtml(a.createTime || "") + " · " + escapeHtml(a.authorName || "管理员") + "</div></div>"
+      ).join("");
+      const modal = document.createElement("div");
+      modal.id = "login-announce-overlay";
+      modal.className = "admin-modal-mask";
+      modal.innerHTML = "<div class='admin-modal admin-modal-wide'>" +
+        "<div class='admin-modal-head'>" +
+        "<h3>系统公告</h3>" +
+        "<button type='button' class='admin-modal-close' onclick='document.getElementById(\"login-announce-overlay\").remove()' aria-label='关闭'>×</button></div>" +
+        html +
+        "<div class='admin-modal-actions'><button type='button' class='crud-btn primary' onclick='document.getElementById(\"login-announce-overlay\").remove()'>我已知晓</button></div></div>";
+      document.body.appendChild(modal);
+    } catch(e) {}
+  };
+
+  const renderTrendChart = async () => {
+    const el = $("admin-trend-chart");
+    if (!el) return;
+    try {
+      await ensureEcharts();
+      const days = last7();
+      const userRes = await requestGet(apiBase() + "/userInfo/queryByPage?page=1&size=9999");
+      const userRows = userRes && userRes.code === 1 && userRes.content ? userRes.content.content || [] : [];
+
+      // 查询咨询数据
+      let consultMap = {};
+      let replyMap = {};
+      let consults = [];
+      days.forEach(d => { consultMap[d] = 0; replyMap[d] = 0; });
+      try {
+        const consultRes = await requestGet(apiBase() + "/consultInfo/queryByPage?page=1&size=9999");
+        if (consultRes && consultRes.code === 1 && consultRes.content && consultRes.content.content) {
+          consults = consultRes.content.content;
+          consultMap = countByDay(consults, "consultTime", days);
+          const replied = consults.filter(c => c.reply && c.reply.trim());
+          replyMap = countByDay(replied, "replyTime", days);
+        }
+      } catch(e) {}
+
+      const totalUser = userRows.length;
+      const totalDoctor = userRows.filter((u) => Number(u.roleType) === 2).length;
+      const totalPatient = userRows.filter((u) => Number(u.roleType) === 1).length;
+      const todayKey = ymd(new Date());
+      const todayConsult = consultMap[todayKey] || 0;
+      const totalEl = $("dash-total-user");
+      const doctorEl = $("dash-total-doctor");
+      const patientEl = $("dash-total-patient");
+      const todayEl = $("dash-today-flow");
+      if (totalEl) totalEl.textContent = String(totalUser);
+      if (doctorEl) doctorEl.textContent = String(totalDoctor);
+      if (patientEl) patientEl.textContent = String(totalPatient);
+      if (todayEl) todayEl.textContent = String(todayConsult);
+
+      // 待处理咨询数（无回复的）
+      const pendingConsult = consults.filter(c => !c.reply || !c.reply.trim()).length;
+      if ($("dash-pending-consult")) $("dash-pending-consult").textContent = String(pendingConsult);
+
+      // 近7天零回复医生数
+      try {
+        const doctorRes = await requestGet(apiBase() + "/doctorInfo/queryByPage?page=1&size=9999");
+        const doctors = (doctorRes && doctorRes.code === 1 && doctorRes.content && doctorRes.content.content) ? doctorRes.content.content : [];
+        const repliedDoctorIds = new Set(
+          consults
+            .filter(c => c.reply && c.reply.trim() && c.doctorId)
+            .map(c => String(c.doctorId))
+        );
+        const zeroReply = doctors.filter(d => !repliedDoctorIds.has(String(d.doctorId))).length;
+        if ($("dash-zero-reply-doctor")) $("dash-zero-reply-doctor").textContent = String(zeroReply);
+      } catch(e) {}
+
+      const latestBox = $("dash-latest-login");
+      if (latestBox) {
+        const latest = userRows
+          .filter((u) => String(u.loginTime || "").trim())
+          .sort((a, b) => String(b.loginTime || "").localeCompare(String(a.loginTime || "")))
+          .slice(0, 6);
+        latestBox.innerHTML = latest.length
+          ? latest.map((u) => "<div class='dash-order-item'>" + escapeHtml(u.realName || u.username || "未知用户") + "<span class='dash-order-time'>" + escapeHtml(String(u.loginTime || "")) + "</span></div>").join("")
+          : "<div class='dash-empty'>暂无登录记录</div>";
+      }
+
+      if (trendChart) trendChart.dispose();
+      trendChart = window.echarts.init(el);
+      trendChart.setOption({
+        tooltip: { trigger: "axis" },
+        legend: { data: ["用户咨询量", "医生回复量"] },
+        grid: { left: 40, right: 20, top: 40, bottom: 30 },
+        xAxis: { type: "category", data: days.map((d) => d.slice(5)), boundaryGap: false },
+        yAxis: { type: "value", minInterval: 1 },
+        series: [
+          {
+            name: "用户咨询量",
+            type: "line",
+            smooth: true,
+            areaStyle: { opacity: 0.15 },
+            data: days.map((d) => consultMap[d] || 0)
+          },
+          {
+            name: "医生回复量",
+            type: "line",
+            smooth: true,
+            areaStyle: { opacity: 0.1 },
+            data: days.map((d) => replyMap[d] || 0)
+          }
+        ]
+      });
+    } catch {
+      el.innerHTML = "<div style='color:#d65b00;padding:12px;'>图表加载失败，请确认 ECharts 资源可访问。</div>";
+    }
+  };
+
+  const dashboardHtml = () =>
+    "<h3 class='content-page-title'>系统概览 </h3>" +
+    "<p class='content-page-desc'>管理员首页数据总览</p>" +
+    "<div class='dash-stat-row'>" +
+      "<article class='dash-kpi'><div class='dash-kpi-dot' style='background:#4f8df5'>总</div><div class='dash-kpi-meta'><span>全体用户数</span><b id='dash-total-user'>0</b></div></article>" +
+      "<article class='dash-kpi'><div class='dash-kpi-dot' style='background:#2fbe67'>医</div><div class='dash-kpi-meta'><span>医生总数</span><b id='dash-total-doctor'>0</b></div></article>" +
+      "<article class='dash-kpi'><div class='dash-kpi-dot' style='background:#a45ceb'>患</div><div class='dash-kpi-meta'><span>患者总数</span><b id='dash-total-patient'>0</b></div></article>" +
+      "<article class='dash-kpi'><div class='dash-kpi-dot' style='background:#f28d42'>今</div><div class='dash-kpi-meta'><span>今日咨询</span><b id='dash-today-flow'>0</b></div></article>" +
+    "</div>" +
+    "<div class='dash-alert-row' id='dash-alert-row'>" +
+      "<article class='dash-alert-card' id='dash-alert-consult' onclick=\"navigateTo('consultTable')\" style='cursor:pointer'>" +
+        "<div class='dash-alert-icon' style='background:#f59e0b1a'>⏳</div>" +
+        "<div class='dash-alert-body'><span>待处理咨询</span><b id='dash-pending-consult'>0</b>条</div>" +
+      "</article>" +
+      "<article class='dash-alert-card' id='dash-alert-doctor' onclick=\"navigateTo('doctorTable')\" style='cursor:pointer'>" +
+        "<div class='dash-alert-icon' style='background:#ef44441a'>⚠️</div>" +
+        "<div class='dash-alert-body'><span>零回复医生</span><b id='dash-zero-reply-doctor'>0</b>人</div>" +
+      "</article>" +
+    "</div>" +
+    "<div class='dash-quick-row' id='dash-quick-row'>" +
+      "<button class='dash-quick-btn' type='button' id='qk-patient' onclick=\"navigateTo('userInfo')\">" +
+        "<div class='dash-quick-icon'>👤+</div><span>新增患者</span>" +
+      "</button>" +
+      "<button class='dash-quick-btn' type='button' id='qk-doctor' onclick=\"navigateTo('doctorInfo')\">" +
+        "<div class='dash-quick-icon'>👨‍⚕️+</div><span>新增医生</span>" +
+      "</button>" +
+      "<button class='dash-quick-btn' type='button' id='qk-announce' onclick=\"openAnnounceModal()\">" +
+        "<div class='dash-quick-icon'>📢</div><span>发布公告</span>" +
+      "</button>" +
+    "</div>" +
+    "<div class='dash-main-grid'>" +
+      "<section class='dash-panel dash-chart-panel'><h4>近7日咨询趋势</h4><div id='admin-trend-chart' class='dash-chart'></div></section>" +
+      "<section class='dash-panel'><h4>最近登录</h4><div id='dash-latest-login' class='dash-order-list'></div></section>" +
+    "</div>";
+
+  // ---------------- CRUD pages (compact) ----------------
+  const getMeta = (groupKey, path) => crudGroups[groupKey].find((x) => x.path === path);
+
+  const renderUserManagePage = (targetRoleType, pageTitle) => {
+    const meta = getMeta("main", "userInfo");
+    const PAGE_SIZE = 100;
+    let currentPage = 1;
+    let totalElements = 0;
+
+    contentArea.innerHTML =
+      "<h3 class='content-page-title'>" + escapeHtml(pageTitle) + "</h3>" +
+      "<div class='crud-card'>" +
+      "<div class='crud-toolbar'>" +
+      "<button class='crud-btn primary' type='button' id='um-q'>查询</button>" +
+      "<button class='crud-btn success' type='button' id='um-add'>新增</button>" +
+      "</div>" +
+      "<div class='crud-table-wrap'><table class='crud-table'><thead id='um-h'></thead><tbody id='um-b'></tbody></table></div>" +
+      "<div id='um-pager' class='crud-pager'></div>" +
+      "<div class='result' id='um-r'></div>" +
+      "</div>";
+
+    const renderPager = () => {
+      const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
+      const pagerEl = $("um-pager");
+      if (!pagerEl) return;
+      let html = "<span>共 " + totalElements + " 条，第 " + currentPage + " / " + totalPages + " 页</span><div style='display:flex;gap:6px;'>";
+      html += "<button class='crud-btn' type='button' id='pg-first' " + (currentPage <= 1 ? "disabled" : "") + ">首页</button>";
+      html += "<button class='crud-btn' type='button' id='pg-prev' " + (currentPage <= 1 ? "disabled" : "") + ">上一页</button>";
+      html += "<button class='crud-btn' type='button' id='pg-next' " + (currentPage >= totalPages ? "disabled" : "") + ">下一页</button>";
+      html += "<button class='crud-btn' type='button' id='pg-last' " + (currentPage >= totalPages ? "disabled" : "") + ">末页</button>";
+      html += "</div>";
+      pagerEl.innerHTML = html;
+      const bind = (id, page) => { const b = $(id); if (b) b.addEventListener("click", () => { currentPage = page; load(); }); };
+      bind("pg-first", 1);
+      bind("pg-prev", currentPage - 1);
+      bind("pg-next", currentPage + 1);
+      bind("pg-last", totalPages);
+    };
+
+    const load = async () => {
+      try {
+        const data = await requestGet(apiBase() + "/userInfo/queryByPage?page=1&size=9999");
+        const all = data && data.code === 1 && data.content ? (data.content.content || []) : [];
+        const filtered = all.filter((r) => Number(r.roleType) === Number(targetRoleType));
+        totalElements = filtered.length;
+        if (all[0]) tableKeysCache.userInfo = Object.keys(all[0]);
+        if (!filtered.length) {
+          $("um-h").innerHTML = "";
+          $("um-b").innerHTML = "";
+          $("um-pager").innerHTML = "";
+          showResult($("um-r"), false, "暂无数据");
+          return;
+        }
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const rows = filtered.slice(start, start + PAGE_SIZE);
+        const keys = Object.keys(rows[0]);
+        $("um-h").innerHTML = "<tr>" + keys.map((k) => "<th>" + escapeHtml(getFieldLabel(k)) + "</th>").join("") + "<th>操作</th></tr>";
+        $("um-b").innerHTML = rows.map((row) => {
+          const id = row[meta.idField];
+          return "<tr>" +
+            keys.map((k) => "<td>" + escapeHtml(formatCellValue(k, row[k], row)) + "</td>").join("") +
+            "<td><button class='crud-op' data-op='e' data-id='" + id + "'>编辑</button><button class='crud-op del' data-op='d' data-id='" + id + "'>删除</button></td></tr>";
+        }).join("");
+        showResult($("um-r"), true, "查询成功，共 " + totalElements + " 条");
+        renderPager();
+
+        $$("[data-op='d']").forEach((btn) => btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (!confirm("确定删除 用户ID=" + id + " 吗？")) return;
+          const res = await requestGet(apiBase() + "/userInfo/deleteById/" + id);
+          showResult($("um-r"), res.code === 1, res.code === 1 ? "删除成功" : (res.msg || "删除失败"));
+          await load();
+        }));
+
+        $$("[data-op='e']").forEach((btn) => btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          const q = await requestGet(apiBase() + "/userInfo/queryById/" + id);
+          if (q.code !== 1) return showResult($("um-r"), false, q.msg || "未找到数据");
+          openEditor(meta, "edit", q.content || {}, async (payload) => {
+            payload.roleType = Number(targetRoleType);
+            const res = await requestJson(apiBase() + "/userInfo/edit", payload);
+            showResult($("um-r"), res.code === 1, res.code === 1 ? "修改成功" : (res.msg || "修改失败"));
+            if (res.code === 1) await load();
+            return res.code === 1;
+          }, "um-r");
+        }));
+      } catch {
+        showResult($("um-r"), false, "查询失败，请确认管理员已登录");
+      }
+    };
+
+    $("um-q").addEventListener("click", () => { currentPage = 1; load(); });
+    $("um-add").addEventListener("click", () => {
+      openEditor(meta, "add", {}, async (payload) => {
+        payload.roleType = Number(targetRoleType);
+        if (payload.status == null) payload.status = 1;
+        const res = await requestJson(apiBase() + "/userInfo/add", payload);
+        showResult($("um-r"), res.code === 1, res.code === 1 ? "新增成功" : (res.msg || "新增失败"));
+        if (res.code === 1) await load();
+        return res.code === 1;
+      }, "um-r");
+    });
+
+    load();
+  };
+
+  const openEditor = (meta, mode, seedData, onSubmit, resultId) => {
+    const keys = mode === "add" ? (tableKeysCache[meta.path] || []) : Object.keys(seedData || {});
+    const fields = keys.filter((k) => k !== meta.idField || mode !== "add");
+    const resultBox = $(resultId);
+    if (!fields.length) return showResult(resultBox, false, "请先查询一次数据后再新增/编辑");
+
+    const mask = document.createElement("div");
+    mask.className = "editor-mask";
+    mask.innerHTML =
+      "<div class='editor-dialog'>" +
+      "<h3>" + (mode === "add" ? "新增" : "编辑") + "「" + meta.title + "」</h3>" +
+      "<form id='editor-form'>" +
+      "<div class='editor-grid'>" +
+      fields
+        .map((k) => {
+          const v = seedData && seedData[k] != null ? seedData[k] : "";
+          const ro = mode === "edit" && k === meta.idField ? " readonly" : "";
+          const type = k === "password" ? "password" : "text";
+          return "<div class='editor-item'><label>" + escapeHtml(getFieldLabel(k)) + "</label><input type='" + type + "' data-k='" + escapeHtml(k) + "' value='" + escapeHtml(v) + "'" + ro + "></div>";
+        })
+        .join("") +
+      "</div>" +
+      "<div class='editor-actions'><button class='crud-btn' type='button' id='editor-cancel'>取消</button><button class='crud-btn primary' type='submit'>保存</button></div>" +
+      "</form></div>";
+    document.body.appendChild(mask);
+
+    const close = () => mask.parentNode && mask.parentNode.removeChild(mask);
+    mask.addEventListener("click", (e) => e.target === mask && close());
+    mask.querySelector("#editor-cancel").addEventListener("click", close);
+    mask.querySelector("#editor-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {};
+      fields.forEach((k) => {
+        payload[k] = String(mask.querySelector("[data-k='" + k + "']").value || "").trim() || null;
+      });
+      if (meta.path === "messageInfo") {
+        if (!payload.msgContent) return showResult(resultBox, false, "请填写留言内容");
+        if (!payload.senderId || !payload.receiverId) return showResult(resultBox, false, "请填写发送者ID和接收者ID");
+        if (!payload.msgTime) payload.msgTime = getNowText();
+      }
+      const ok = await onSubmit(payload);
+      if (ok) close();
+    });
+  };
+
+  const renderCrudPage = (groupKey, titleText) => {
+    const options = crudGroups[groupKey].map((x) => "<option value='" + x.path + "'>" + x.title + "</option>").join("");
+    contentArea.innerHTML =
+      "<h3 class='content-page-title'>" + escapeHtml(titleText) + "</h3>" +
+      "<div class='crud-card'>" +
+      "<div class='crud-toolbar'><select id='crud-sel'>" + options + "</select><button class='crud-btn primary' type='button' id='crud-q'>查询</button><button class='crud-btn success' type='button' id='crud-add'>新增</button></div>" +
+      "<div class='crud-table-wrap'><table class='crud-table'><thead id='crud-h'></thead><tbody id='crud-b'></tbody></table></div>" +
+      "<div class='result' id='crud-r'></div></div>";
+
+    const sel = $("crud-sel");
+    const load = async () => {
+      const path = sel.value;
+      const meta = getMeta(groupKey, path);
+      try {
+        const data = await requestGet(apiBase() + "/" + path + "/queryByPage?page=1&size=50");
+        const rows = data && data.code === 1 && data.content ? data.content.content || [] : [];
+        if (!rows.length) {
+          $("crud-h").innerHTML = "";
+          $("crud-b").innerHTML = "";
+          return showResult($("crud-r"), false, data.msg || "暂无数据");
+        }
+        const keys = Object.keys(rows[0]);
+        tableKeysCache[path] = keys;
+        $("crud-h").innerHTML = "<tr>" + keys.map((k) => "<th>" + escapeHtml(getFieldLabel(k)) + "</th>").join("") + "<th>操作</th></tr>";
+        $("crud-b").innerHTML = rows
+          .map((row) => {
+            const id = row[meta.idField];
+            return "<tr>" +
+              keys.map((k) => "<td>" + escapeHtml(formatCellValue(k, row[k], row)) + "</td>").join("") +
+              "<td><button class='crud-op' data-op='e' data-p='" + path + "' data-id='" + id + "'>编辑</button><button class='crud-op del' data-op='d' data-p='" + path + "' data-id='" + id + "'>删除</button></td></tr>";
+          })
+          .join("");
+        showResult($("crud-r"), true, "查询成功，共 " + rows.length + " 条");
+
+        $$("[data-op='d']").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const path = btn.getAttribute("data-p");
+            const id = btn.getAttribute("data-id");
+            if (!confirm("确定删除 ID=" + id + " 吗？")) return;
+            const res = await requestGet(apiBase() + "/" + path + "/deleteById/" + id);
+            showResult($("crud-r"), res.code === 1, res.code === 1 ? "删除成功" : (res.msg || "删除失败"));
+            await load();
+          });
+        });
+        $$("[data-op='e']").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const path = btn.getAttribute("data-p");
+            const id = btn.getAttribute("data-id");
+            const meta = getMeta(groupKey, path);
+            const q = await requestGet(apiBase() + "/" + path + "/queryById/" + id);
+            if (q.code !== 1) return showResult($("crud-r"), false, q.msg || "未找到数据");
+            openEditor(meta, "edit", q.content || {}, async (payload) => {
+              const res = await requestJson(apiBase() + "/" + path + "/edit", payload);
+              showResult($("crud-r"), res.code === 1, res.code === 1 ? "修改成功" : (res.msg || "修改失败"));
+              if (res.code === 1) await load();
+              return res.code === 1;
+            }, "crud-r");
+          });
+        });
+      } catch {
+        showResult($("crud-r"), false, "查询失败，请确认管理员已登录");
+      }
+    };
+
+    $("crud-q").addEventListener("click", load);
+    $("crud-add").addEventListener("click", () => {
+      const meta = getMeta(groupKey, sel.value);
+      openEditor(meta, "add", {}, async (payload) => {
+        const res = await requestJson(apiBase() + "/" + meta.path + "/add", payload);
+        showResult($("crud-r"), res.code === 1, res.code === 1 ? "新增成功" : (res.msg || "新增失败"));
+        if (res.code === 1) await load();
+        return res.code === 1;
+      }, "crud-r");
+    });
+    load();
+  };
+
+  const renderSingleTableCrud = (path, titleText) => {
+    const meta = allCrudTables.find((x) => x.path === path);
+    const PAGE_SIZE = 100;
+    let currentPage = 1;
+    let totalElements = 0;
+
+    contentArea.innerHTML =
+      "<h3 class='content-page-title'>" + escapeHtml(titleText) + "</h3>" +
+      "<div class='crud-card'>" +
+      "<div class='crud-toolbar'><button class='crud-btn primary' type='button' id='single-q'>查询</button><button class='crud-btn success' type='button' id='single-add'>新增</button></div>" +
+      "<div class='crud-table-wrap'><table class='crud-table'><thead id='single-h'></thead><tbody id='single-b'></tbody></table></div>" +
+      "<div id='single-pager' class='crud-pager'></div>" +
+      "<div class='result' id='single-r'></div></div>";
+
+    const renderPager = () => {
+      const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
+      const pagerEl = $("single-pager");
+      if (!pagerEl) return;
+      let html = "<span>共 " + totalElements + " 条，第 " + currentPage + " / " + totalPages + " 页</span><div style='display:flex;gap:6px;'>";
+      html += "<button class='crud-btn' type='button' id='pg-first' " + (currentPage <= 1 ? "disabled" : "") + ">首页</button>";
+      html += "<button class='crud-btn' type='button' id='pg-prev' " + (currentPage <= 1 ? "disabled" : "") + ">上一页</button>";
+      html += "<button class='crud-btn' type='button' id='pg-next' " + (currentPage >= totalPages ? "disabled" : "") + ">下一页</button>";
+      html += "<button class='crud-btn' type='button' id='pg-last' " + (currentPage >= totalPages ? "disabled" : "") + ">末页</button>";
+      html += "</div>";
+      pagerEl.innerHTML = html;
+      const bind = (id, page) => { const b = $(id); if (b) b.addEventListener("click", () => { currentPage = page; load(); }); };
+      bind("pg-first", 1);
+      bind("pg-prev", currentPage - 1);
+      bind("pg-next", currentPage + 1);
+      bind("pg-last", totalPages);
+    };
+
+    const load = async () => {
+      try {
+        const data = await requestGet(apiBase() + "/" + path + "/queryByPage?page=" + currentPage + "&size=" + PAGE_SIZE);
+        const rows = data && data.code === 1 && data.content ? data.content.content || [] : [];
+        totalElements = data && data.code === 1 && data.content ? (data.content.totalElements || rows.length) : 0;
+        if (!rows.length) {
+          $("single-h").innerHTML = "";
+          $("single-b").innerHTML = "";
+          $("single-pager").innerHTML = "";
+          return showResult($("single-r"), false, data.msg || "暂无数据");
+        }
+        const keys = Object.keys(rows[0]);
+        tableKeysCache[path] = keys;
+        $("single-h").innerHTML = "<tr>" + keys.map((k) => "<th>" + escapeHtml(getFieldLabel(k)) + "</th>").join("") + "<th>操作</th></tr>";
+        $("single-b").innerHTML = rows.map((row) => {
+          const id = row[meta.idField];
+          return "<tr>" + keys.map((k) => "<td>" + escapeHtml(formatCellValue(k, row[k], row)) + "</td>").join("") +
+            "<td><button class='crud-op' data-op='e' data-id='" + id + "'>编辑</button><button class='crud-op del' data-op='d' data-id='" + id + "'>删除</button></td></tr>";
+        }).join("");
+        showResult($("single-r"), true, "查询成功，共 " + totalElements + " 条");
+        renderPager();
+
+        $$("[data-op='d']").forEach((btn) => btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (!confirm("确定删除 ID=" + id + " 吗？")) return;
+          const res = await requestGet(apiBase() + "/" + path + "/deleteById/" + id);
+          showResult($("single-r"), res.code === 1, res.code === 1 ? "删除成功" : (res.msg || "删除失败"));
+          await load();
+        }));
+        $$("[data-op='e']").forEach((btn) => btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          const q = await requestGet(apiBase() + "/" + path + "/queryById/" + id);
+          if (q.code !== 1) return showResult($("single-r"), false, q.msg || "未找到数据");
+          openEditor(meta, "edit", q.content || {}, async (payload) => {
+            const res = await requestJson(apiBase() + "/" + path + "/edit", payload);
+            showResult($("single-r"), res.code === 1, res.code === 1 ? "修改成功" : (res.msg || "修改失败"));
+            if (res.code === 1) await load();
+            return res.code === 1;
+          }, "single-r");
+        }));
+      } catch {
+        showResult($("single-r"), false, "查询失败，请确认管理员已登录");
+      }
+    };
+
+    $("single-q").addEventListener("click", () => { currentPage = 1; load(); });
+    $("single-add").addEventListener("click", () => {
+      openEditor(meta, "add", {}, async (payload) => {
+        const res = await requestJson(apiBase() + "/" + path + "/add", payload);
+        showResult($("single-r"), res.code === 1, res.code === 1 ? "新增成功" : (res.msg || "新增失败"));
+        if (res.code === 1) await load();
+        return res.code === 1;
+      }, "single-r");
+    });
+    load();
+  };
+
+  const renderAdminTableManager = () => {
+    contentArea.innerHTML =
+      "<h3 class='content-page-title'>系统维护</h3>" +
+      "<div class='admin-data-layout'><aside class='table-nav'><h4>名称列表</h4><div id='tbl-links'></div></aside><section id='tbl-panel'></section></div>";
+    const links = $("tbl-links");
+    links.innerHTML = allCrudTables.map((t, i) => "<button class='table-link" + (i === 0 ? " active" : "") + "' data-p='" + t.path + "'>" + t.title + "</button>").join("");
+    const open = (path) => {
+      const meta = allCrudTables.find((x) => x.path === path);
+      const PAGE_SIZE = 100;
+      let tblPage = 1;
+      let tblTotal = 0;
+      const panel = $("tbl-panel");
+      panel.innerHTML =
+        "<div class='crud-card'><div class='crud-actions'><button class='crud-btn success' type='button' id='tbl-add'>新增</button><button class='crud-btn' type='button' id='tbl-reload'>刷新</button></div>" +
+        "<div class='crud-table-wrap'><table class='crud-table'><thead id='tbl-h'></thead><tbody id='tbl-b'></tbody></table></div>" +
+        "<div id='tbl-pager' class='crud-pager'></div>" +
+        "<div class='result' id='tbl-r'></div></div>";
+
+      const renderPager = () => {
+        const totalPages = Math.max(1, Math.ceil(tblTotal / PAGE_SIZE));
+        const pagerEl = $("tbl-pager");
+        if (!pagerEl) return;
+        let html = "<span>共 " + tblTotal + " 条，第 " + tblPage + " / " + totalPages + " 页</span><div style='display:flex;gap:6px;'>";
+        html += "<button class='crud-btn' type='button' id='tp-first' " + (tblPage <= 1 ? "disabled" : "") + ">首页</button>";
+        html += "<button class='crud-btn' type='button' id='tp-prev' " + (tblPage <= 1 ? "disabled" : "") + ">上一页</button>";
+        html += "<button class='crud-btn' type='button' id='tp-next' " + (tblPage >= totalPages ? "disabled" : "") + ">下一页</button>";
+        html += "<button class='crud-btn' type='button' id='tp-last' " + (tblPage >= totalPages ? "disabled" : "") + ">末页</button>";
+        html += "</div>";
+        pagerEl.innerHTML = html;
+        const bind = (id, page) => { const b = $(id); if (b) b.addEventListener("click", () => { tblPage = page; load(); }); };
+        bind("tp-first", 1);
+        bind("tp-prev", tblPage - 1);
+        bind("tp-next", tblPage + 1);
+        bind("tp-last", totalPages);
+      };
+
+      const load = async () => {
+        const data = await requestGet(apiBase() + "/" + meta.path + "/queryByPage?page=" + tblPage + "&size=" + PAGE_SIZE);
+        const rows = data && data.code === 1 && data.content ? data.content.content || [] : [];
+        tblTotal = data && data.code === 1 && data.content ? (data.content.totalElements || rows.length) : 0;
+        if (!rows.length) {
+          $("tbl-h").innerHTML = "";
+          $("tbl-b").innerHTML = "";
+          $("tbl-pager").innerHTML = "";
+          return showResult($("tbl-r"), false, data.msg || "暂无数据");
+        }
+        const keys = Object.keys(rows[0]);
+        tableKeysCache[meta.path] = keys;
+        $("tbl-h").innerHTML = "<tr>" + keys.map((k) => "<th>" + escapeHtml(getFieldLabel(k)) + "</th>").join("") + "<th>操作</th></tr>";
+        $("tbl-b").innerHTML = rows
+          .map((row) => {
+            const id = row[meta.idField];
+            return "<tr>" + keys.map((k) => "<td>" + escapeHtml(formatCellValue(k, row[k], row)) + "</td>").join("") +
+              "<td><button class='crud-op' data-op='e' data-id='" + id + "'>编辑</button><button class='crud-op del' data-op='d' data-id='" + id + "'>删除</button></td></tr>";
+          })
+          .join("");
+        showResult($("tbl-r"), true, "查询成功，共 " + tblTotal + " 条");
+        renderPager();
+        $$("[data-op='d']").forEach((btn) => btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (!confirm("确定删除 ID=" + id + " 吗？")) return;
+          const res = await requestGet(apiBase() + "/" + meta.path + "/deleteById/" + id);
+          showResult($("tbl-r"), res.code === 1, res.code === 1 ? "删除成功" : (res.msg || "删除失败"));
+          await load();
+        }));
+        $$("[data-op='e']").forEach((btn) => btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          const q = await requestGet(apiBase() + "/" + meta.path + "/queryById/" + id);
+          if (q.code !== 1) return showResult($("tbl-r"), false, q.msg || "未找到数据");
+          openEditor(meta, "edit", q.content || {}, async (payload) => {
+            const res = await requestJson(apiBase() + "/" + meta.path + "/edit", payload);
+            showResult($("tbl-r"), res.code === 1, res.code === 1 ? "修改成功" : (res.msg || "修改失败"));
+            if (res.code === 1) await load();
+            return res.code === 1;
+          }, "tbl-r");
+        }));
+      };
+      $("tbl-reload").addEventListener("click", () => { tblPage = 1; load(); });
+      $("tbl-add").addEventListener("click", () => openEditor(meta, "add", {}, async (payload) => {
+        const res = await requestJson(apiBase() + "/" + meta.path + "/add", payload);
+        showResult($("tbl-r"), res.code === 1, res.code === 1 ? "新增成功" : (res.msg || "新增失败"));
+        if (res.code === 1) await load();
+        return res.code === 1;
+      }, "tbl-r"));
+      load();
+    };
+    $$("[data-p]").forEach((btn) => btn.addEventListener("click", () => {
+      $$("[data-p]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      open(btn.getAttribute("data-p"));
+    }));
+    open(allCrudTables[0].path);
+  };
+
+  // ---------------- Role page switching ----------------
+  const isAdminRoute = /\/admin\/?$/.test(String(location.pathname || ""));
+
+  const goAdminRoute = () => {
+    const name = currentLoginUser && (currentLoginUser.realName || currentLoginUser.username)
+      ? (currentLoginUser.realName || currentLoginUser.username) : "";
+    const userId = currentLoginUser && currentLoginUser.userId != null ? currentLoginUser.userId : "";
+    sessionStorage.setItem("adminUserId", String(userId));
+    sessionStorage.setItem("adminUserName", name);
+    try {
+      sessionStorage.setItem("adminLoginUser", JSON.stringify(currentLoginUser || {}));
+    } catch (_) {}
+    sessionStorage.setItem("showLoginAnnouncements", "1");
+    // 与患者/医生工作台一样，使用独立路由
+    window.location.href = "admin";
+  };
+
+  const renderRolePage = (roleKey) => {
+    if (roleKey === "patient") {
+      closeAuthModal();
+      const name = currentLoginUser && (currentLoginUser.realName || currentLoginUser.username) ? (currentLoginUser.realName || currentLoginUser.username) : "";
+      const userId = currentLoginUser && currentLoginUser.userId ? currentLoginUser.userId : "";
+      if (userId) {
+        sessionStorage.setItem('patientUserId', userId);
+        sessionStorage.setItem('patientUserName', name);
+      }
+      // 跳转后由工作台弹出公告（首页弹窗会被页面跳转冲掉）
+      sessionStorage.setItem('showLoginAnnouncements', '1');
+      window.location.href = `patient-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(name)}`;
+      return;
+    }
+    if (roleKey === "doctor") {
+      closeAuthModal();
+      const name = currentLoginUser && (currentLoginUser.realName || currentLoginUser.username) ? (currentLoginUser.realName || currentLoginUser.username) : "";
+      const userId = currentLoginUser && currentLoginUser.userId ? currentLoginUser.userId : "";
+      if (userId) {
+        sessionStorage.setItem('doctorUserId', userId);
+        sessionStorage.setItem('doctorUserName', name);
+      }
+      sessionStorage.setItem('showLoginAnnouncements', '1');
+      window.location.href = `doctor-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(name)}`;
+      return;
+    }
+    if (roleKey === "admin" && !isAdminRoute) {
+      goAdminRoute();
+      return;
+    }
+    const cfg = roleConfig[roleKey];
+    roleTitle.textContent = cfg.title;
+    roleSubtitle.textContent = cfg.subtitle;
+    menuList.innerHTML = "";
+    let currentGroup = "";
+    const actionButtons = [];
+
+    const runMenuAction = (action, name) => {
+      if (action === "dashboard") {
+        contentArea.innerHTML = dashboardHtml();
+        renderTrendChart();
+        return;
+      }
+      if (action === "userAdmin") return renderUserManagePage(0, "用户管理 / 管理员设置");
+      if (action === "userPatient") return renderUserManagePage(2, "用户管理 / 患者管理");
+      if (action === "userDoctor") return renderUserManagePage(1, "用户管理 / 医生管理");
+      if (action === "deptTable") return renderSingleTableCrud("deptInfo", "科室管理");
+      if (action === "doctorTable") return renderSingleTableCrud("doctorInfo", "医生管理");
+      if (action === "patientTable") return renderSingleTableCrud("patientInfo", "患者管理");
+      if (action === "medicineTable") return renderSingleTableCrud("medicineInfo", "药品管理");
+      if (action === "feeTable") return renderSingleTableCrud("feeInfo", "收费管理");
+      if (action === "registerTable") return renderSingleTableCrud("registerInfo", "挂号管理");
+      if (action === "consultTable") return renderSingleTableCrud("consultInfo", "咨询管理");
+      if (action === "checkTable") return renderSingleTableCrud("checkInfo", "检查管理");
+      if (action === "recordTable") return renderSingleTableCrud("recordInfo", "病历管理");
+      if (action === "messageTable") return renderSingleTableCrud("messageInfo", "留言管理");
+      if (action === "presDetailTable") return renderSingleTableCrud("presDetailInfo", "处方明细管理");
+      if (action === "announcementTable") return renderSingleTableCrud("announcementInfo", "公告管理");
+      if (action === "crudMain") return renderCrudPage("main", name || "基础数据表CRUD管理");
+      if (action === "crudSub") return renderCrudPage("sub", name || "业务流水表CRUD管理");
+      if (action === "adminTables") return renderAdminTableManager();
+      if (action === "doctorDashboard") {
+        const uid = currentLoginUser && currentLoginUser.userId ? currentLoginUser.userId : "";
+        const name = currentLoginUser && currentLoginUser.realName ? currentLoginUser.realName : "";
+        if (uid) {
+          sessionStorage.setItem('doctorUserId', uid);
+          sessionStorage.setItem('doctorUserName', name);
+        }
+        window.open("doctor-dashboard.html?userId=" + encodeURIComponent(uid) + "&userName=" + encodeURIComponent(name), "_blank");
+        return;
+      }
+      contentArea.innerHTML = "<h3 class='content-page-title'>" + escapeHtml(name || "页面") + "</h3>";
+    };
+
+    const createActionButton = (menuName, action, isDefault) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "menu-btn" + (isDefault ? " active" : "");
+      btn.textContent = menuName;
+      btn.dataset.menuAction = action;
+      btn.addEventListener("click", () => {
+        actionButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        runMenuAction(action, menuName);
+      });
+      actionButtons.push(btn);
+      return btn;
+    };
+
+    let firstActionItem = null;
+    const accordionGroups = [];
+
+    cfg.menus.forEach((m) => {
+      if (m.group && m.group !== currentGroup) {
+        currentGroup = m.group;
+        const g = document.createElement("div");
+        g.className = "menu-group-title";
+        g.textContent = m.group;
+        menuList.appendChild(g);
+      }
+
+      if (Array.isArray(m.children) && m.children.length) {
+        const parent = document.createElement("button");
+        parent.type = "button";
+        parent.className = "menu-parent";
+        parent.textContent = m.name;
+        menuList.appendChild(parent);
+
+        const subList = document.createElement("div");
+        subList.className = "menu-sub-list";
+        m.children.forEach((child, idx) => {
+          const isDefault = !firstActionItem && idx === 0;
+          const childBtn = createActionButton(child.name, child.action, isDefault);
+          subList.appendChild(childBtn);
+          if (!firstActionItem) {
+            firstActionItem = child;
+          }
+        });
+        parent.addEventListener("click", () => {
+          const opened = subList.classList.contains("open");
+          accordionGroups.forEach((item) => {
+            item.subList.classList.remove("open");
+            item.parent.classList.remove("open");
+          });
+          if (!opened) {
+            subList.classList.add("open");
+            parent.classList.add("open");
+          }
+        });
+        accordionGroups.push({ parent, subList });
+        menuList.appendChild(subList);
+      } else {
+        const isDefault = !firstActionItem;
+        const btn = createActionButton(m.name, m.action, isDefault);
+        menuList.appendChild(btn);
+        if (!firstActionItem) {
+          firstActionItem = m;
+        }
+      }
+    });
+
+    // default page
+    if (firstActionItem) {
+      runMenuAction(firstActionItem.action, firstActionItem.name);
+    }
+    if (accordionGroups.length) {
+      accordionGroups[0].subList.classList.add("open");
+      accordionGroups[0].parent.classList.add("open");
+    }
+
+    patientHome.style.display = "none";
+    siteTopbar.style.display = "none";
+    userMenu.classList.remove("active");
+    mainLayout.classList.add("active");
+    closeAuthModal();
+    if (homeBgFrame) homeBgFrame.style.display = "none";
+  };
+
+  // ---------------- Captcha + auth ----------------
+  const generateCaptcha = () => {
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    let code = "";
+    for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    currentCaptcha = code;
+
+    const ctx = captchaCanvas.getContext("2d");
+    ctx.clearRect(0, 0, captchaCanvas.width, captchaCanvas.height);
+    const w = captchaCanvas.width;
+    const h = captchaCanvas.height;
+
+    // 背景渐变 + 轻微噪色
+    const bg = ctx.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, "#f4f9ff");
+    bg.addColorStop(1, "#e7f1ff");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // 干扰曲线
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.lineWidth = 1 + Math.random() * 1.5;
+      ctx.strokeStyle = "rgba(" + (40 + Math.floor(Math.random() * 100)) + "," + (80 + Math.floor(Math.random() * 120)) + "," + (120 + Math.floor(Math.random() * 120)) + ",0.35)";
+      const y = Math.random() * h;
+      ctx.moveTo(0, y);
+      for (let x = 0; x <= w; x += 8) {
+        ctx.lineTo(x, y + Math.sin((x + Math.random() * 20) / 12) * (2 + Math.random() * 3));
+      }
+      ctx.stroke();
+    }
+
+    // 噪点
+    for (let i = 0; i < 120; i++) {
+      const x = Math.random() * w;
+      const y = Math.random() * h;
+      ctx.fillStyle = "rgba(" + (80 + Math.floor(Math.random() * 120)) + "," + (120 + Math.floor(Math.random() * 110)) + "," + (140 + Math.floor(Math.random() * 100)) + ",0.35)";
+      ctx.fillRect(x, y, 1.2, 1.2);
+    }
+
+    // 验证码字符（随机旋转、位移、阴影）
+    for (let i = 0; i < code.length; i++) {
+      const ch = code[i];
+      const x = 12 + i * 22 + Math.random() * 3;
+      const y = 28 + (Math.random() * 6 - 3);
+      const angle = (Math.random() * 40 - 20) * Math.PI / 180;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.font = "bold " + (20 + Math.floor(Math.random() * 4)) + "px Microsoft YaHei";
+      ctx.shadowColor = "rgba(30,70,140,0.35)";
+      ctx.shadowBlur = 2 + Math.random() * 2;
+      ctx.fillStyle = "rgb(" + (20 + Math.floor(Math.random() * 60)) + "," + (70 + Math.floor(Math.random() * 80)) + "," + (130 + Math.floor(Math.random() * 80)) + ")";
+      ctx.fillText(ch, 0, 0);
+      ctx.restore();
+    }
+  };
+
+  const doLogin = async () => {
+    const account = loginAccount.value.trim();
+    const password = readLoginPassword();
+    const captcha = loginCaptcha.value.trim().toUpperCase();
+    const emailCode = loginEmailCode ? loginEmailCode.value.trim() : "";
+    if (!account || !password) return showResult(authResult, false, "请填写账号和密码。");
+    if (!captcha) return showResult(authResult, false, "请输入图形验证码。");
+    if (captcha !== currentCaptcha) {
+      showResult(authResult, false, "图形验证码不正确，请重试。");
+      loginCaptcha.value = "";
+      return generateCaptcha();
+    }
+    // 先校验账号真实身份，防止不同身份入口混用（兼容两套编码）
+    const roleTypeWanted = Number(roleConfig[currentRole].roleType);
+    const roleTypeCandidatesMap = {
+      admin: [0, 1],
+      doctor: [1, 2],
+      patient: [2, 3]
+    };
+    const roleTypeCandidates = roleTypeCandidatesMap[currentRole] || [roleTypeWanted];
+    const roleLabelMap = { 0: "管理员", 1: "医生", 2: "患者", 3: "患者" };
+    const userQuery = await fetchJsonSafe(apiBase() + "/userInfo/queryByPage?page=1&size=1&username=" + encodeURIComponent(account));
+    if (userQuery && userQuery._fatal) return showResult(authResult, false, userQuery.msg);
+    const matchedList = userQuery && userQuery.code === 1 && userQuery.content && userQuery.content.content
+      ? userQuery.content.content
+      : [];
+    const matchedUser = matchedList.find((u) => String(u.username) === account) || matchedList[0] || null;
+    if (matchedUser && !roleTypeCandidates.includes(Number(matchedUser.roleType))) {
+      return showResult(authResult, false, "该账号是“" + (roleLabelMap[Number(matchedUser.roleType)] || "未知") + "”身份，请切换到对应入口登录。");
+    }
+
+    // 患者：库中已有邮箱才要求验证码；无邮箱账号先密码登录，进系统后再补绑
+    const matchedEmail = matchedUser && matchedUser.email ? String(matchedUser.email).trim() : "";
+    const patientHasEmail = currentRole === "patient" && !!matchedEmail;
+    if (patientHasEmail) {
+      accountHasBoundEmail = true;
+      if (patientEmailCodeRow) patientEmailCodeRow.style.display = "grid";
+    }
+    if (patientHasEmail && !emailCode) {
+      if (emailCodeCountdownLeft > 0) {
+        if (loginEmailCode) loginEmailCode.focus();
+        return showResult(authResult, false, "请输入邮箱验证码。");
+      }
+      await sendLoginEmailCode();
+      if (loginEmailCode) loginEmailCode.focus();
+      return;
+    }
+
+    let data = null;
+    const tryRoles = matchedUser && matchedUser.roleType != null
+      ? [Number(matchedUser.roleType)]
+      : roleTypeCandidates;
+    for (let i = 0; i < tryRoles.length; i++) {
+      const tryRoleType = tryRoles[i];
+      const payload = { username: account, password, roleType: tryRoleType };
+      if (patientHasEmail) payload.emailCode = emailCode;
+      const tryRes = await fetchJsonSafe(apiBase() + "/userInfo/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (tryRes && tryRes._fatal) return showResult(authResult, false, tryRes.msg);
+      if (tryRes && tryRes.code === 1) {
+        data = tryRes;
+        break;
+      }
+      data = tryRes;
+      const failMsg = (tryRes && tryRes.msg) ? String(tryRes.msg) : "";
+      if (!/角色/.test(failMsg)) break;
+    }
+    if (!data || data.code !== 1) {
+      const msg = (data && data.msg) || "登录失败，请检查账号密码与所选入口是否一致。";
+      if (currentRole === "patient" && /验证码/.test(msg) && loginEmailCode) loginEmailCode.value = "";
+      return showResult(authResult, false, msg);
+    }
+    currentLoginUser = data.content || null;
+
+    // 以后端真实角色为准，避免“前端是管理员页，但后端会话不是管理员”导致权限错位
+    const loginRoleType = Number(currentLoginUser && currentLoginUser.roleType);
+    const roleTypeToKey = { 0: "admin", 1: "doctor", 2: "patient", 3: "patient" };
+    const loginRoleKey = roleTypeToKey[loginRoleType];
+    if (!loginRoleKey) {
+      return showResult(authResult, false, "登录成功但角色异常，请联系管理员检查角色配置。");
+    }
+    if (loginRoleKey !== currentRole) {
+      const roleNameMap = { admin: "管理员", doctor: "医生", patient: "患者" };
+      return showResult(authResult, false, "该账号真实身份为“" + roleNameMap[loginRoleKey] + "”，请从对应入口登录。");
+    }
+
+    if (currentLoginUser && currentLoginUser.userId != null) {
+      const loginTimeText = getNowText();
+      currentLoginUser.loginTime = loginTimeText;
+      requestJson(apiBase() + "/userInfo/edit", {
+        ...currentLoginUser,
+        loginTime: loginTimeText
+      }).catch(() => {});
+    }
+    const showName = currentLoginUser && (currentLoginUser.realName || currentLoginUser.username) ? (currentLoginUser.realName || currentLoginUser.username) : account;
+    currentUserName.textContent = showName;
+    renderPatientMenuProfile();
+    renderAiQuickButtons();
+    showResult(authResult, true, "登录成功（用户ID：" + (currentLoginUser.userId == null ? "-" : currentLoginUser.userId) + "，角色值：" + loginRoleType + "）");
+    // 与后端会话角色保持一致
+    currentRole = loginRoleKey;
+    renderRolePage(currentRole);
+    sessionStorage.setItem("adminUserId", String(currentLoginUser.userId || ""));
+    sessionStorage.setItem("adminUserName", currentLoginUser.realName || currentLoginUser.username || "");
+    // 管理员跳转 /admin 后由路由页弹公告；若已在 /admin 则本页直接弹
+    if (loginRoleKey === "admin" && isAdminRoute) {
+      showLoginAnnouncements();
+    }
+    if (pendingAiConsult && currentLoginUser && Number(currentLoginUser.roleType) === 2) {
+      const up = await uploadAiRecord(pendingAiConsult.question, pendingAiConsult.suggestion);
+      showResult(aiResult, up.ok, pendingAiConsult.suggestion + "\n\n" + up.msg);
+      pendingAiConsult = null;
+    }
+    const needBindEmail = loginRoleKey === "patient" && (
+      currentLoginUser.needBindEmail === true
+      || !currentLoginUser.email
+      || String(currentLoginUser.email).trim() === ""
+    );
+    if (needBindEmail) {
+      openBindEmailModal();
+    }
+  };
+
+  const doRegister = async () => {
+    const username = registerAccount.value.trim();
+    const password = registerPassword.value.trim();
+    const realName = registerName.value.trim();
+    const phone = registerPhone.value.trim();
+    const email = registerEmail ? registerEmail.value.trim() : "";
+    if (!username || !password || !realName) return showResult(authResult, false, "请填写账号、密码、姓名。");
+    const payload = { username, password, realName, phone, roleType: roleConfig[currentRole].roleType, status: 1 };
+    if (currentRole === "patient") {
+      if (!email) return showResult(authResult, false, "请填写邮箱。");
+      if (!isValidEmailFormat(email)) return showResult(authResult, false, "邮箱格式不正确。");
+      payload.email = email;
+    }
+    const data = await requestJson(apiBase() + "/userInfo/register", payload);
+    if (data.code !== 1) return showResult(authResult, false, data.msg || "注册失败");
+    showResult(authResult, true, "注册成功，即将跳转到完善信息页面...");
+    const newUserId = data.content && data.content.userId ? data.content.userId : '';
+    setTimeout(() => {
+      closeAuthModal();
+      if (currentRole === "patient") {
+        window.location.href = `patient-info.html?userId=${encodeURIComponent(newUserId)}&userName=${encodeURIComponent(realName)}`;
+      } else if (currentRole === "doctor") {
+        window.location.href = `doctor-info.html?userId=${encodeURIComponent(newUserId)}&userName=${encodeURIComponent(realName)}`;
+      } else {
+        switchAuthMode("login");
+      }
+    }, 1500);
+  };
+
+  const doLogout = () => {
+    requestJson(apiBase() + "/userInfo/logout", {}).catch(() => {});
+    try {
+      sessionStorage.removeItem("patientUserId");
+      sessionStorage.removeItem("patientUserName");
+      sessionStorage.removeItem("doctorUserId");
+      sessionStorage.removeItem("doctorUserName");
+      sessionStorage.removeItem("adminUserId");
+      sessionStorage.removeItem("adminUserName");
+      sessionStorage.removeItem("adminLoginUser");
+      sessionStorage.removeItem("showLoginAnnouncements");
+    } catch (_) {}
+    currentLoginUser = null;
+    pendingAiConsult = null;
+    currentRole = "patient";
+    currentUserName.textContent = "未登录";
+    topUserName.textContent = "患者";
+    topSummaryName.textContent = "未登录";
+    topAvatarDot.textContent = "患";
+    userMenu.classList.remove("open");
+    closeAuthModal();
+    if (isAdminRoute) {
+      window.location.href = "index.html";
+      return;
+    }
+    showPublicHomeBeforeLogin();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    showResult(authResult, true, "已退出登录。");
+  };
+
+  const activateRoleAndOpenAuth = (roleKey) => {
+    closeHomeRoleMenu();
+    currentRole = roleKey;
+    setRoleTheme();
+    switchAuthMode("login");
+    openAuthModal();
+  };
+
+  // ---------------- Events ----------------
+  closeAuthBtn.addEventListener("click", closeAuthModal);
+  authMask.addEventListener("click", (e) => e.target === authMask && closeAuthModal());
+
+  document.querySelectorAll(".role-card-btn[data-role]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentRole = btn.getAttribute("data-role");
+      setRoleTheme();
+      generateCaptcha();
+    });
+  });
+
+  showLoginBtn.addEventListener("click", () => switchAuthMode("login"));
+  showRegisterBtn.addEventListener("click", () => switchAuthMode("register"));
+  confirmBtn.addEventListener("click", () => (currentMode === "login" ? doLogin() : doRegister()));
+  clearBtn.addEventListener("click", () => {
+    [loginAccount, loginPassword, loginCaptcha, loginEmailCode, registerAccount, registerPassword, registerName, registerPhone, registerEmail].forEach((el) => { if (el) el.value = ""; });
+    typedLoginPassword = "";
+    accountHasBoundEmail = false;
+    if (patientEmailCodeRow) patientEmailCodeRow.style.display = "none";
+    authResult.className = "result";
+    authResult.textContent = "";
+    generateCaptcha();
+  });
+  captchaCanvas.addEventListener("click", generateCaptcha);
+  captchaRefreshBtn.addEventListener("click", generateCaptcha);
+  if (loginPassword) {
+    ["input", "change", "keyup", "blur"].forEach((ev) => {
+      loginPassword.addEventListener(ev, () => { typedLoginPassword = loginPassword.value || ""; });
+    });
+  }
+  if (loginAccount) {
+    loginAccount.addEventListener("blur", () => probePatientEmailRequirement());
+    loginAccount.addEventListener("change", () => probePatientEmailRequirement());
+  }
+  if (sendEmailCodeBtn) sendEmailCodeBtn.addEventListener("click", () => sendLoginEmailCode());
+  if (bindEmailSave) bindEmailSave.addEventListener("click", () => saveBindEmail());
+
+  consultSubmitBtn.addEventListener("click", () => {
+    if (!consultName.value.trim() || !consultPhone.value.trim() || !consultContent.value.trim()) return showResult(consultResult, false, "请填写完整咨询信息。");
+    
+    if (!currentLoginUser) {
+      currentRole = "patient";
+      setRoleTheme();
+      openAuthModal();
+      return showResult(consultResult, false, "请先登录患者账号后提交咨询。");
+    }
+    
+    showResult(consultResult, true, "咨询已提交，医生将尽快回复。");
+  });
+
+  aiSuggestBtn.addEventListener("click", handleAiConsultSubmit);
+
+  let homeLang = "zh";
+
+  const renderHomeLanguage = () => {
+    const isEn = homeLang === "en";
+    const titleEl = document.querySelector(".brand h1");
+    const subtitleEl = document.querySelector(".brand p");
+    if (titleEl) titleEl.textContent = isEn ? "Medical System" : "医疗系统";
+    if (subtitleEl) subtitleEl.textContent = isEn ? "Online consultation, triage guidance, care navigation" : "在线问诊、分诊建议、就诊指引";
+    const setText = (id, text) => {
+      const el = $(id);
+      if (el) el.textContent = text;
+    };
+    if (homeLangToggle) homeLangToggle.textContent = isEn ? "中文" : "English";
+    setText("home-role-btn-label", isEn ? "Patient / Doctor / Admin" : "患者 / 医生 / 管理员");
+    setText("home-hero-kicker", "Genetic Health");
+    setText("home-hero-title", isEn ? "Smart Clinic" : "智慧门诊系统");
+    const titleElHero = $("home-hero-title");
+    if (titleElHero) {
+      titleElHero.innerHTML = isEn
+        ? `Smart Clinic<span class="home-title-en">Genetic Health</span>`
+        : `智慧门诊系统<span class="home-title-en">Smart Clinic</span>`;
+    }
+    setText("home-hero-lead", isEn
+      ? "Hover the DNA particles on the right to disperse and magnify."
+      : "将鼠标移到右侧 DNA 粒子上，感受分散与局部放大交互。");
+    setText("home-cta-start", isEn ? "Get started" : "开始使用");
+    setText("home-cta-doctor", isEn ? "For doctors" : "医生入口");
+    setText("home-scroll-label", isEn ? "Explore" : "向下探索");
+    setText("home-features-title", isEn ? "Capabilities" : "核心能力");
+    setText("home-features-desc", isEn ? "Scroll to explore modules, then open the service you need." : "向下了解系统模块，点击进入对应服务。");
+    setText("home-feat-ai-title", isEn ? "AI triage" : "智能导诊");
+    setText("home-feat-ai-desc", isEn ? "Symptom analysis and department recommendations." : "症状分析与科室推荐，快速找到合适医生。");
+    setText("home-feat-reg-title", isEn ? "Appointments" : "在线挂号");
+    setText("home-feat-reg-desc", isEn ? "Pick a department and time slot online." : "选择科室与时段，减少排队等待时间。");
+    setText("home-feat-rec-title", isEn ? "Records" : "病历管理");
+    setText("home-feat-rec-desc", isEn ? "Visits, reports, and prescriptions in one place." : "就诊记录、检查报告与处方，一处查看。");
+    setText("home-services-title", isEn ? "Online services" : "在线服务");
+    setText("home-services-desc", isEn ? "Leave a message or ask AI here, or sign in for the full workspace." : "需要留言或 AI 建议？在此提交，或登录后进入完整工作台。");
+    setText("home-ai-title", isEn ? "AI tips" : "AI 健康建议");
+    setText(
+      "home-ai-hint",
+      isEn ? "Describe symptoms or health questions. Suggestions are informational only." : "输入症状或健康疑问，获取仅供参考的初步建议。"
+    );
+    setText("home-ai-q-label", isEn ? "Your question" : "问题描述");
+    if (aiQuestion) aiQuestion.placeholder = isEn ? "e.g. mild dizziness lately — what should I watch for?" : "例如：近期头晕乏力，需要注意什么？";
+    if (aiSuggestBtn) aiSuggestBtn.textContent = isEn ? "Get suggestions" : "获取建议";
+    setText("home-consult-title", isEn ? "Consultation" : "问诊");
+    setText("home-consult-hint", isEn ? "We will contact you as soon as possible after you submit." : "提交留言后，工作人员将尽快与您联系。");
+    setText("home-c-name-label", isEn ? "Name" : "称呼");
+    setText("home-c-phone-label", isEn ? "Phone" : "联系电话");
+    setText("home-c-content-label", isEn ? "Message" : "咨询内容");
+    if (consultName) consultName.placeholder = isEn ? "How should we address you?" : "您的称呼";
+    if (consultPhone) consultPhone.placeholder = isEn ? "Mobile number" : "手机号码";
+    if (consultContent) consultContent.placeholder = isEn ? "Briefly describe your question" : "请简要描述您的问题";
+    if (consultSubmitBtn) consultSubmitBtn.textContent = isEn ? "Submit" : "提交咨询";
+    setText("top-summary-line", isEn ? "Patient hub · AI tips & records" : "患者中心 · AI小建议与病历管理");
+    if (menuAi) menuAi.textContent = isEn ? "AI tips" : "AI小建议";
+  };
+
+  homeLangToggle &&
+    homeLangToggle.addEventListener("click", () => {
+      homeLang = homeLang === "zh" ? "en" : "zh";
+      renderHomeLanguage();
+    });
+
+  homeRoleBtn &&
+    homeRoleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!homeRoleWrap) return;
+      const open = !homeRoleWrap.classList.contains("open");
+      homeRoleWrap.classList.toggle("open", open);
+      homeRoleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+  document.addEventListener("click", () => closeHomeRoleMenu());
+
+  homeRoleWrap &&
+    homeRoleWrap.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+  $$("[data-home-role]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const role = btn.getAttribute("data-home-role");
+      if (role === "admin") {
+        window.location.href = "admin";
+        return;
+      }
+      if (role === "patient" || role === "doctor") activateRoleAndOpenAuth(role);
+    });
+  });
+
+  userChip.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!userMenu.classList.contains("active")) return;
+    userMenu.classList.toggle("open");
+  });
+  userMenu.addEventListener("mouseleave", () => userMenu.classList.remove("open"));
+
+  menuAi && menuAi.addEventListener("click", () => {
+    userMenu.classList.remove("open");
+    aiQuestion.focus();
+    aiQuestion.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  menuConsult && menuConsult.addEventListener("click", () => {
+    userMenu.classList.remove("open");
+    consultContent.focus();
+    consultContent.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  menuRecord && menuRecord.addEventListener("click", () => {
+    userMenu.classList.remove("open");
+    if (!currentLoginUser) return openAuthModal();
+    showResult(aiResult, true, "问诊病历已自动上传，可在管理员端“病历”表按患者ID查询。");
+    aiResult.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  menuProfile && menuProfile.addEventListener("click", () => {
+    userMenu.classList.remove("open");
+    const name = currentLoginUser ? (currentLoginUser.realName || currentLoginUser.username || "患者") : "未登录";
+    const uid = currentLoginUser && currentLoginUser.userId ? currentLoginUser.userId : "-";
+    showResult(aiResult, true, "当前账号：" + name + "（用户ID：" + uid + "）");
+  });
+
+  logoutBtn.addEventListener("click", doLogout);
+  topLogoutBtn.addEventListener("click", doLogout);
+
+  const initHomeInteractions = () => {
+    const aiBox = $("ai-question");
+    const consultNameInput = $("consult-name");
+
+    const focusAiPanel = (prefill) => {
+      const panel = document.querySelector(".home-ai-dock");
+      const services = $("home-services");
+      if (services) services.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (panel) {
+        panel.classList.add("is-active");
+        setTimeout(() => panel.classList.remove("is-active"), 1200);
+      }
+      if (prefill && aiBox) {
+        aiBox.value = prefill;
+        setTimeout(() => aiBox.focus(), 400);
+      } else if (aiBox) {
+        setTimeout(() => aiBox.focus(), 400);
+      }
+    };
+
+    const focusConsultPanel = () => {
+      const panel = document.querySelector(".home-consult-dock");
+      const services = $("home-services");
+      if (services) services.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (panel) {
+        panel.classList.add("is-active");
+        setTimeout(() => panel.classList.remove("is-active"), 1200);
+      }
+      if (consultNameInput) setTimeout(() => consultNameInput.focus(), 400);
+    };
+
+    document.querySelectorAll("[data-home-action]").forEach((el) => {
+      el.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("med-heart-pulse"));
+        const action = el.getAttribute("data-home-action");
+        if (action === "patient") return activateRoleAndOpenAuth("patient");
+        if (action === "doctor") return activateRoleAndOpenAuth("doctor");
+        if (action === "admin") return activateRoleAndOpenAuth("admin");
+        if (action === "ai") return focusAiPanel(el.getAttribute("data-ai-q") || "");
+        if (action === "consult") return focusConsultPanel();
+      });
+    });
+
+    const scrollCue = $("home-scroll-cue");
+    scrollCue &&
+      scrollCue.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = $("home-features");
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+    const brandMark = document.querySelector(".brand-mark-home");
+    window.addEventListener("med-heart-pulse", () => {
+      if (!brandMark) return;
+      brandMark.classList.add("pulse");
+      setTimeout(() => brandMark.classList.remove("pulse"), 420);
+    });
+  };
+
+  const initHomeCarousel = () => {
+    const root = $("home-carousel");
+    if (!root) return;
+    const slides = Array.from(root.querySelectorAll(".carousel-slide"));
+    if (!slides.length) return;
+    let idx = 0;
+    const dotsWrap = $("home-carousel-dots");
+    const show = (i) => {
+      idx = (i + slides.length) % slides.length;
+      slides.forEach((s, j) => s.classList.toggle("active", j === idx));
+      if (dotsWrap) {
+        dotsWrap.querySelectorAll(".dot").forEach((d, j) => d.classList.toggle("active", j === idx));
+      }
+    };
+    if (dotsWrap) {
+      dotsWrap.innerHTML = slides
+        .map((_, j) => "<button type='button' class='dot" + (j === 0 ? " active" : "") + "' role='tab' aria-label='第 " + (j + 1) + " 张'></button>")
+        .join("");
+      dotsWrap.querySelectorAll(".dot").forEach((d, j) => {
+        d.addEventListener("click", () => show(j));
+      });
+    }
+    const prev = root.querySelector(".carousel-prev");
+    const next = root.querySelector(".carousel-next");
+    prev &&
+      prev.addEventListener("click", () => {
+        show(idx - 1);
+      });
+    next &&
+      next.addEventListener("click", () => {
+        show(idx + 1);
+      });
+    let timer = null;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => show(idx + 1), 5000);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    start();
+    root.addEventListener("mouseenter", stop);
+    root.addEventListener("mouseleave", start);
+  };
+
+  // init
+  setRoleTheme();
+  switchAuthMode("login");
+  renderAiQuickButtons();
+  renderHomeLanguage();
+  generateCaptcha();
+  initHomeInteractions();
+  initHomeCarousel();
+  showPublicHomeBeforeLogin();
+
+  // /doctor/admin 路由：已登录则进入管理台，否则打开管理员登录
+  if (isAdminRoute) {
+    let restored = null;
+    try {
+      const raw = sessionStorage.getItem("adminLoginUser");
+      if (raw) restored = JSON.parse(raw);
+    } catch (_) {}
+    const adminId = sessionStorage.getItem("adminUserId");
+    if (restored && restored.userId != null && adminId && String(restored.userId) === String(adminId)
+        && Number(restored.roleType) === 0) {
+      currentLoginUser = restored;
+      currentRole = "admin";
+      const showName = restored.realName || restored.username || sessionStorage.getItem("adminUserName") || "管理员";
+      currentUserName.textContent = showName;
+      setRoleTheme();
+      renderRolePage("admin");
+      if (sessionStorage.getItem("showLoginAnnouncements") === "1") {
+        sessionStorage.removeItem("showLoginAnnouncements");
+        showLoginAnnouncements();
+      }
+    } else {
+      currentRole = "admin";
+      setRoleTheme();
+      switchAuthMode("login");
+      openAuthModal();
+    }
+  } else {
+    // 记录网站访问（仅游客首页）
+    fetch(apiBase() + "/siteVisit/record", { method: "GET", credentials: "include" }).catch(() => {});
+    if (window.WeatherTips) {
+      WeatherTips.mount("#weather-tips", { compact: true });
+    }
+  }
+})();
+</script>
+</body>
+</html>

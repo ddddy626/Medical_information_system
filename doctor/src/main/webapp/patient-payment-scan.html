@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫码支付确认 - 医疗系统</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 45%, #ecfdf5 100%);
+            min-height: 100vh;
+            padding: 20px 16px 32px;
+        }
+        .wrap {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+        .header p {
+            font-size: 13px;
+            color: #64748b;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 22px 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            margin-bottom: 16px;
+        }
+        .amount {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: #dc2626;
+            margin: 8px 0 4px;
+        }
+        .amount-label {
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 18px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row dt { color: #64748b; flex-shrink: 0; }
+        .detail-row dd { color: #1e293b; font-weight: 500; text-align: right; word-break: break-all; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-paid { background: #dcfce7; color: #16a34a; }
+        .confirm-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .confirm-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .confirm-btn:not(:disabled):active { transform: scale(0.98); }
+        .tip {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .msg {
+            margin-top: 12px;
+            font-size: 13px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .msg.error { color: #dc2626; }
+        .msg.ok { color: #16a34a; }
+        .success-box {
+            text-align: center;
+            padding: 28px 12px 12px;
+        }
+        .success-box h2 {
+            font-size: 20px;
+            color: #16a34a;
+            margin-bottom: 8px;
+        }
+        .loading, .error-box {
+            text-align: center;
+            padding: 48px 16px;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="header">
+            <h1>扫码支付</h1>
+            <p>请核对订单信息后确认支付</p>
+        </div>
+        <div id="main-content">
+            <div class="loading">加载订单信息…</div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const params = new URLSearchParams(window.location.search);
+        const feeId = params.get('feeId');
+        const userId = params.get('userId');
+        const userName = params.get('userName') || '';
+        const payMethodKey = params.get('method') || 'wechat';
+        const payMethodName = payMethodKey === 'alipay' ? '支付宝线上支付' : '微信线上支付';
+
+        const nowText = () => {
+            const d = new Date();
+            const p = (n) => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+        };
+
+        const apiBase = () => window.location.origin + '/doctor';
+
+        const fetchOrder = async (id) => {
+            try {
+                const res = await fetch(`${apiBase()}/feeInfo/queryByPage?feeId=${encodeURIComponent(id)}&page=1&size=1`, { credentials: 'include' }).then((r) => r.json());
+                if (res.code === 1 && res.content && res.content.content && res.content.content[0]) {
+                    return res.content.content[0];
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return null;
+        };
+
+        const renderPaid = (order) => {
+            $('main-content').innerHTML = `
+                <div class="card">
+                    <div class="success-box">
+                        <h2>订单已支付</h2>
+                        <p style="font-size:14px;color:#64748b;">无需重复操作</p>
+                    </div>
+                    ${renderDetail(order)}
+                </div>
+            `;
+        };
+
+        const renderDetail = (order) => `
+            <dl>
+                <div class="detail-row"><dt>订单编号</dt><dd>#${order.feeId}</dd></div>
+                <div class="detail-row"><dt>费用类型</dt><dd>${order.feeType || '-'}</dd></div>
+                <div class="detail-row"><dt>患者</dt><dd>${order.patientName || userName || '-'}</dd></div>
+                <div class="detail-row"><dt>支付状态</dt><dd><span class="status-badge ${order.payStatus === 1 ? 'status-paid' : 'status-pending'}">${order.payStatus === 1 ? '已支付' : '待支付'}</span></dd></div>
+                ${order.payStatus === 1 ? `
+                <div class="detail-row"><dt>支付方式</dt><dd>${order.payMethod || '-'}</dd></div>
+                <div class="detail-row"><dt>支付时间</dt><dd>${order.payTime || '-'}</dd></div>
+                ` : ''}
+            </dl>
+        `;
+
+        const renderPending = (order) => {
+            $('main-content').innerHTML = `
+                <div class="card">
+                    <p class="amount-label">应付金额 · ${payMethodName}</p>
+                    <p class="amount">¥${order.amount != null ? Number(order.amount).toFixed(2) : '0.00'}</p>
+                    ${renderDetail(order)}
+                </div>
+                <div class="card">
+                    <button type="button" class="confirm-btn" id="confirm-btn">确认${payMethodKey === 'alipay' ? '支付宝' : '微信'}支付</button>
+                    <p class="tip">请确认您已通过${payMethodKey === 'alipay' ? '支付宝' : '微信'}完成线上支付后再点击。</p>
+                    <p class="msg" id="msg"></p>
+                </div>
+            `;
+
+            $('confirm-btn').addEventListener('click', () => confirmPay(order));
+        };
+
+        const confirmPay = async (order) => {
+            const btn = $('confirm-btn');
+            const msg = $('msg');
+            if (!btn || btn.disabled) return;
+
+            btn.disabled = true;
+            btn.textContent = '处理中…';
+            if (msg) {
+                msg.className = 'msg';
+                msg.textContent = '';
+            }
+
+            try {
+                const res = await fetch(`${apiBase()}/feeInfo/edit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feeId: order.feeId,
+                        payStatus: 1,
+                        payMethod: payMethodName,
+                        payTime: nowText()
+                    }),
+                    credentials: 'include'
+                }).then((r) => r.json());
+
+                if (res.code === 1) {
+                    const fresh = await fetchOrder(order.feeId);
+                    if (fresh) {
+                        renderPaid(fresh);
+                    } else {
+                        $('main-content').innerHTML = `
+                            <div class="card">
+                                <div class="success-box">
+                                    <h2>支付成功</h2>
+                                    <p style="font-size:14px;color:#64748b;">${res.msg || '订单状态已更新'}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+
+                btn.disabled = false;
+                btn.textContent = '确认支付';
+                if (msg) {
+                    msg.className = 'msg error';
+                    msg.textContent = res.msg || '支付失败，请稍后重试';
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = '确认支付';
+                if (msg) {
+                    msg.className = 'msg error';
+                    msg.textContent = '网络错误，请检查连接后重试';
+                }
+            }
+        };
+
+        (async () => {
+            if (!feeId) {
+                $('main-content').innerHTML = '<div class="error-box">缺少订单号，请重新扫描二维码</div>';
+                return;
+            }
+            const order = await fetchOrder(feeId);
+            if (!order) {
+                $('main-content').innerHTML = '<div class="error-box">订单不存在或无法加载</div>';
+                return;
+            }
+            if (order.payStatus === 1) renderPaid(order);
+            else renderPending(order);
+        })();
+    </script>
+</body>
+</html>

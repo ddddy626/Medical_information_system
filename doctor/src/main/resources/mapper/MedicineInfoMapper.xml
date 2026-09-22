@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.MedicineInfoMapper">
+
+    <resultMap id="medicineInfoMap" type="com.dyh.doctor.domain.MedicineInfoEntity">
+        <result column="id" property="id" />
+        <result column="med_name" property="medName" />
+        <result column="med_type" property="medType" />
+        <result column="price" property="price" />
+        <result column="stock" property="stock" />
+        <result column="spec" property="spec" />
+        <result column="producer" property="producer" />
+        <result column="status" property="status" />
+        <result column="med_insurance_type" property="medInsuranceType" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            medicine_info.id, medicine_info.med_name, medicine_info.med_type, medicine_info.price, medicine_info.stock, medicine_info.spec, medicine_info.producer, medicine_info.status, medicine_info.med_insurance_type
+        FROM medicine_info
+        WHERE 1 = 1
+    </sql>
+
+    <sql id="condition">
+        <if test="medicineInfo.id != null">
+             and medicine_info.id = #{medicineInfo.id}
+        </if>
+        <if test="medicineInfo.medName != null and medicineInfo.medName != ''">
+             and medicine_info.med_name LIKE concat('%', #{medicineInfo.medName}, '%')
+        </if>
+        <if test="medicineInfo.medType != null and medicineInfo.medType != ''">
+             and medicine_info.med_type = #{medicineInfo.medType}
+        </if>
+        <if test="medicineInfo.spec != null and medicineInfo.spec != ''">
+             and medicine_info.spec LIKE concat('%', #{medicineInfo.spec}, '%')
+        </if>
+        <if test="medicineInfo.producer != null and medicineInfo.producer != ''">
+             and medicine_info.producer LIKE concat('%', #{medicineInfo.producer}, '%')
+        </if>
+        <if test="medicineInfo.status != null">
+             and medicine_info.status = #{medicineInfo.status}
+        </if>
+        <if test="medicineInfo.medInsuranceType != null and medicineInfo.medInsuranceType != ''">
+             and medicine_info.med_insurance_type = #{medicineInfo.medInsuranceType}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="medicineInfoMap">
+        <include refid="baseSql"></include>
+        AND medicine_info.id = #{id}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="medicineInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into medicine_info(med_name, med_type, price, stock, spec, producer, status, med_insurance_type)
+        values(#{medName}, #{medType}, #{price}, #{stock}, #{spec}, #{producer}, #{status}, #{medInsuranceType})
+    </insert>
+
+    <update id="update">
+        update medicine_info
+        <set>
+            <if test="medName != null and medName != ''">
+                med_name = #{medName},
+            </if>
+            <if test="medType != null and medType != ''">
+                med_type = #{medType},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="stock != null">
+                stock = #{stock},
+            </if>
+            <if test="spec != null and spec != ''">
+                spec = #{spec},
+            </if>
+            <if test="producer != null and producer != ''">
+                producer = #{producer},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="medInsuranceType != null and medInsuranceType != ''">
+                med_insurance_type = #{medInsuranceType},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM medicine_info WHERE id = #{id}
+    </delete>
+</mapper>

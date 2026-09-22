@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的病历 - 医疗系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .record-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .record-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 4px solid #00d4ff;
+            transition: all 0.3s ease;
+        }
+        .record-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .record-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .record-date {
+            font-size: 13px;
+            color: #aaa;
+        }
+        .record-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .meta-item {
+            font-size: 13px;
+            color: #ccc;
+        }
+        .meta-item strong {
+            color: #00d4ff;
+        }
+        .record-content {
+            margin-bottom: 15px;
+        }
+        .content-section {
+            margin-bottom: 12px;
+        }
+        .content-section:last-child {
+            margin-bottom: 0;
+        }
+        .content-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .content-text {
+            font-size: 14px;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state div {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .empty-state p {
+            font-size: 16px;
+        }
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: #00d4ff;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .collapse-btn:hover {
+            text-decoration: underline;
+        }
+        .details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .details.show {
+            display: block;
+        }
+        .upload-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: 15px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+        .upload-panel h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #00d4ff;
+        }
+        .upload-panel p {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .upload-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.35);
+        }
+        .btn-primary:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .upload-result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            font-size: 13px;
+            color: #e0e0e0;
+            line-height: 1.6;
+            display: none;
+        }
+        .upload-result.show { display: block; }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="header">
+        <h1 class="nav-active">我的病历</h1>
+        <button class="btn btn-secondary" onclick="goBack()">返回首页</button>
+    </div>
+
+    <div class="container">
+        <div class="upload-panel">
+            <h3>上传病历 / 检查报告</h3>
+            <p>拍照或上传检查报告图片，系统将提取图片中的文字。确认后打开编辑窗口，把内容填入病历字段再保存（仅供参考，不能替代医生诊断）。</p>
+            <div class="upload-actions">
+                <button class="btn btn-primary" type="button" id="upload-record-btn">上传病历图片</button>
+                <button class="btn btn-secondary" type="button" id="save-recognized-btn" style="display:none;">编辑并保存为病历</button>
+            </div>
+            <div class="upload-result" id="upload-result"></div>
+        </div>
+
+        <div class="record-list" id="recordList">
+            <div class="empty-state">
+                <div>📋</div>
+                <p>暂无病历记录</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/record-image.js?v=20260902ocr"></script>
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const rawId = new URLSearchParams(window.location.search).get('userId') || localStorage.getItem('userId');
+        let userId = (!rawId || rawId === 'null' || rawId === 'undefined') ? null : rawId;
+        if (!userId) userId = sessionStorage.getItem('patientUserId');
+        let records = [];
+
+        async function loadRecords() {
+            if (!userId) {
+                renderRecords();
+                return;
+            }
+            try {
+                // record_info.patient_id 存的是 user_info.user_id，直接用 userId 查
+                const result = await fetch(`/doctor/recordInfo/queryByPage?patientId=${userId}&page=1&size=50`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (result.code === 1 && result.content && result.content.content) {
+                    records = result.content.content || [];
+                    records.sort((a, b) => new Date(b.recordTime) - new Date(a.recordTime));
+                    renderRecords();
+                } else {
+                    records = [];
+                    renderRecords();
+                }
+            } catch (error) {
+                console.error('加载病历失败:', error);
+                records = [];
+                renderRecords();
+            }
+        }
+
+        function renderRecords() {
+            const container = $('recordList');
+            
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div>📋</div>
+                        <p>暂无病历记录</p>
+                        <p style="font-size: 13px; margin-top: 10px; color: #888;">您的医生会在就诊后为您创建病历</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = records.map((record, index) => `
+                <div class="record-card">
+                    <div class="record-header">
+                        <div class="record-title">
+                            ${record.patientName || '我的病历'}
+                            ${record.doctorName ? `<span style="font-size: 14px; font-weight: normal; color: #aaa; margin-left: 10px;">(${record.doctorName})</span>` : ''}
+                        </div>
+                        <div class="record-date">${formatDate(record.visitDate || record.createTime || record.recordTime)}</div>
+                    </div>
+                    
+                    <div class="record-meta">
+                        ${record.dept ? `<div class="meta-item"><strong>科室:</strong> ${record.dept}</div>` : ''}
+                        ${record.registerId ? `<div class="meta-item"><strong>挂号ID:</strong> ${record.registerId}</div>` : ''}
+                    </div>
+
+                    <div class="record-content">
+                        ${record.chiefComplaint ? `
+                            <div class="content-section">
+                                <div class="content-label">主诉</div>
+                                <div class="content-text">${record.chiefComplaint}</div>
+                            </div>
+                        ` : ''}
+                        
+                        ${record.diagnosis ? `
+                            <div class="content-section">
+                                <div class="content-label">诊断意见</div>
+                                <div class="content-text">${record.diagnosis}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${hasDetails(record) ? `
+                        <button class="collapse-btn" onclick="toggleDetails(${index})">
+                            <span id="toggle-icon-${index}">▼</span> 查看详细内容
+                        </button>
+                        <div class="details" id="details-${index}">
+                            ${record.treatment ? `
+                                <div class="content-section">
+                                    <div class="content-label">治疗建议</div>
+                                    <div class="content-text">${record.treatment}</div>
+                                </div>
+                            ` : ''}
+                            ${record.followUp ? `
+                                <div class="content-section">
+                                    <div class="content-label">随访建议</div>
+                                    <div class="content-text">${record.followUp}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function hasDetails(record) {
+            return record.treatment || record.followUp;
+        }
+
+        function toggleDetails(index) {
+            const details = document.getElementById(`details-${index}`);
+            const icon = document.getElementById(`toggle-icon-${index}`);
+            if (details.classList.contains('show')) {
+                details.classList.remove('show');
+                icon.textContent = '▼';
+            } else {
+                details.classList.add('show');
+                icon.textContent = '▲';
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '未知日期';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch {
+                return dateStr;
+            }
+        }
+
+        function goBack() {
+            let userName = new URLSearchParams(window.location.search).get('userName') || localStorage.getItem('realName');
+            if (!userName) userName = sessionStorage.getItem('patientUserName');
+            window.location.href = `patient-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
+        }
+
+        let lastImageContext = '';
+        const uploadResultEl = $('upload-result');
+        const saveRecognizedBtn = $('save-recognized-btn');
+
+        RecordImage.bindUploadButton({
+            button: '#upload-record-btn',
+            onResult: (data) => {
+                lastImageContext = (data.imageContext || '').trim();
+                if (!lastImageContext) {
+                    uploadResultEl.className = 'upload-result show';
+                    uploadResultEl.textContent = '未识别到文字，请换一张更清晰的图片重试。';
+                    saveRecognizedBtn.style.display = 'none';
+                    return;
+                }
+                const escaped = lastImageContext
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                uploadResultEl.className = 'upload-result show';
+                uploadResultEl.innerHTML = '<strong>识别文字：</strong><div style="white-space:pre-wrap;margin-top:8px;">'
+                    + escaped + '</div>';
+                saveRecognizedBtn.style.display = 'inline-block';
+            }
+        });
+
+        saveRecognizedBtn.addEventListener('click', () => {
+            if (!userId) {
+                alert('请先登录患者账号后再保存');
+                return;
+            }
+            if (!lastImageContext) {
+                alert('暂无可编辑的识别结果');
+                return;
+            }
+            const draft = {
+                ocrText: lastImageContext,
+                diagnosis: '由检查报告图片OCR提取，仅供参考，请医生复核。',
+                treatment: '',
+                followUp: '建议携带原件到院复诊确认。',
+                patientId: userId,
+                createdAt: Date.now()
+            };
+            try {
+                localStorage.setItem('patientRecordDraft', JSON.stringify(draft));
+            } catch (e) {
+                alert('浏览器无法暂存识别结果，请换一张较短的报告再试');
+                return;
+            }
+            let userName = new URLSearchParams(window.location.search).get('userName') || localStorage.getItem('realName');
+            if (!userName) userName = sessionStorage.getItem('patientUserName') || '';
+            const q = new URLSearchParams();
+            q.set('userId', userId);
+            if (userName) q.set('userName', userName);
+            const url = 'patient-record-edit.html?' + q.toString();
+            const win = window.open(url, '_blank');
+            if (!win) {
+                window.location.href = url;
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            loadRecords();
+        });
+
+        loadRecords();
+    </script>
+</body>
+</html>

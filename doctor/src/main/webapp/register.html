@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线挂号 - 智慧医疗系统</title>
+    <style>
+        :root {
+            --primary-color: #2b78d6;
+            --success-color: #1b8f46;
+            --warning-color: #d65b00;
+        }
+
+        * { box-sizing: border-box; }
+
+        body.med-tech-page {
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body.med-tech-page .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #223656;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .dept-list {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-height: 550px;
+            overflow-y: auto;
+        }
+
+        .dept-list h3 {
+            margin: 0 0 16px;
+            font-size: 16px;
+            color: #223656;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .dept-group {
+            margin-bottom: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dept-group-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: #f9fafb;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+
+        .dept-group-title:hover {
+            background: #f3f4f6;
+        }
+
+        .dept-group-title .expand-icon {
+            font-size: 12px;
+            color: #6b7280;
+            transition: transform 0.2s ease;
+        }
+
+        .dept-group.expanded .dept-group-title {
+            background: linear-gradient(135deg, #2b78d6, #1f65b8);
+            color: #fff;
+        }
+
+        .dept-group.expanded .dept-group-title .expand-icon {
+            color: #fff;
+            transform: rotate(180deg);
+        }
+
+        .dept-group-content {
+            display: none;
+            padding: 8px;
+        }
+
+        .dept-group.expanded .dept-group-content {
+            display: block;
+        }
+
+        .dept-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dept-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .dept-item:hover {
+            background: #f0f7ff;
+        }
+
+        .dept-item.active {
+            background: linear-gradient(135deg, #2b78d6, #1f65b8);
+            color: #fff;
+        }
+
+        .dept-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #e0f2fe;
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+        }
+
+        .dept-item.active .dept-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .dept-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .doctor-list {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-height: 550px;
+            overflow-y: auto;
+        }
+
+        .doctor-list h3 {
+            margin: 0 0 16px;
+            font-size: 16px;
+            color: #223656;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .doctor-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .doctor-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(43, 120, 214, 0.15);
+        }
+
+        .doctor-item.selected {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2b78d6, #1f65b8);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .doctor-info {
+            flex: 1;
+        }
+
+        .doctor-info h4 {
+            margin: 0 0 4px;
+            font-size: 15px;
+            color: #223656;
+        }
+
+        .doctor-info p {
+            margin: 0 0 8px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .doctor-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 2px 8px;
+            background: #e0f2fe;
+            color: #0369a1;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .tag.available {
+            background: rgba(78, 205, 196, 0.18);
+            color: #7ee8e0;
+        }
+
+        .tag.unavailable {
+            background: rgba(240, 244, 248, 0.1);
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .tag.remain {
+            background: rgba(44, 123, 229, 0.18);
+            color: #93c5fd;
+            font-weight: 600;
+        }
+
+        .tag.remain.low {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .tag.remain.empty {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .remain-banner {
+            margin: 0 0 14px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            background: rgba(78, 205, 196, 0.08);
+            color: #7ee8e0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .remain-banner.low {
+            border-color: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.1);
+            color: #fbbf24;
+        }
+
+        .remain-banner.empty {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+        }
+
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .slot-btn {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(78, 205, 196, 0.28);
+            background: rgba(0, 0, 0, 0.35);
+            color: #f0f4f8;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+
+        .slot-btn:hover:not(:disabled) {
+            background: rgba(78, 205, 196, 0.12);
+            border-color: #4ecdc4;
+        }
+
+        .slot-btn.selected {
+            background: rgba(78, 205, 196, 0.22);
+            border-color: #4ecdc4;
+            color: #7ee8e0;
+            font-weight: 600;
+        }
+
+        .slot-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .slot-hint {
+            margin: 6px 0 0;
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.45);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .empty-state span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 {
+            margin: 0 0 20px;
+            font-size: 18px;
+            color: #223656;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btns button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .modal-btns .cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btns .confirm {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .success-tip {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-tip .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #dcfce7;
+            color: #16a34a;
+            font-size: 30px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 16px;
+        }
+
+        .success-tip h4 {
+            margin: 0 0 8px;
+            color: #223656;
+        }
+
+        .success-tip p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="header">
+            <h1 class="nav-active">🏥 在线挂号</h1>
+            <button class="back-btn" id="back-btn">返回</button>
+        </div>
+
+        <div class="main-content">
+            <div class="dept-list">
+                <h3>选择科室</h3>
+                <div id="dept-container">
+                    <div class="empty-state">
+                        <span>⏳</span>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doctor-list">
+                <h3 id="doctor-list-title">选择医生</h3>
+                <div id="doctor-container">
+                    <div class="empty-state">
+                        <span>👨‍⚕️</span>
+                        <p>请先选择科室</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h3>确认预约信息</h3>
+            <div id="modal-content"></div>
+            <div class="modal-btns" id="modal-btns">
+                <button class="cancel" id="modal-cancel">取消</button>
+                <button class="confirm" id="modal-confirm">确认预约</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        let userId = new URLSearchParams(window.location.search).get('userId');
+        if (!userId) userId = sessionStorage.getItem('patientUserId');
+        let userName = new URLSearchParams(window.location.search).get('userName');
+        if (!userName) userName = sessionStorage.getItem('patientUserName');
+
+        const deptIcons = {
+            '内科': '🩺', '心血管内科': '❤️', '呼吸内科': '🫁', '消化内科': '🫃', 
+            '肾内科': '🫘', '内分泌科': '🩸', '风湿免疫科': '🦠', '血液内科': '💉',
+            '感染科': '🦠', '外科': '🔪', '神经外科': '⚕️', '心胸外科': '❤️',
+            '泌尿外科': '🫗', '肝胆外科': '🫀', '胃肠外科': '🫄', '乳腺外科': '👩',
+            '血管外科': '🩸', '烧伤整形外科': '🔥', '肛肠科': '🩹', '妇产科': '🤰',
+            '妇科': '👩', '产科': '👶', '新生儿科': '🍼', '儿科': '👶',
+            '儿童保健科': '👧', '眼科': '👁', '耳鼻喉科': '👂', '口腔科': '🦷',
+            '皮肤科': '🧴', '神经内科': '🧠', '骨科': '🦴', '全科医学科': '🏥',
+            '急诊科': '🚑', '重症医学科ICU': '🏥', '麻醉科': '💤', '手术室': '⚕️',
+            '检验科': '🧪', '放射科': '📷', '超声科': '🔊', '心电图室': '💓',
+            '病理科': '🔬', '药剂科': '💊', '消毒供应中心': '🧴', '中医科': '🌿',
+            '针灸推拿科': '🪡', '康复医学科': '🏋️', '男科': '👨', '肿瘤科': '🦠',
+            '营养科': '🥗', '老年病科': '👴', '过敏反应科': '🤧', '体检中心': '🏥'
+        };
+
+        let deptGroups = {};
+
+        const defaultDeptGroups = {
+            '综合科室': [{id: 19, name: '全科医学科'}],
+            '内科系统': [
+                {id: 1, name: '内科'}, {id: 9, name: '神经内科'}, {id: 11, name: '心血管内科'},
+                {id: 12, name: '呼吸内科'}, {id: 13, name: '消化内科'}, {id: 14, name: '肾内科'},
+                {id: 15, name: '内分泌科'}, {id: 16, name: '风湿免疫科'}, {id: 17, name: '血液内科'},
+                {id: 18, name: '感染科'}
+            ],
+            '外科系统': [
+                {id: 2, name: '外科'}, {id: 10, name: '骨科'}, {id: 20, name: '神经外科'},
+                {id: 21, name: '心胸外科'}, {id: 22, name: '泌尿外科'}, {id: 23, name: '肝胆外科'},
+                {id: 24, name: '胃肠外科'}, {id: 25, name: '乳腺外科'}, {id: 26, name: '血管外科'},
+                {id: 27, name: '烧伤整形外科'}, {id: 28, name: '肛肠科'}
+            ],
+            '妇产科': [{id: 4, name: '妇产科'}, {id: 5, name: '妇科'}, {id: 6, name: '产科'}, {id: 31, name: '新生儿科'}],
+            '儿科': [{id: 3, name: '儿科'}, {id: 32, name: '儿童保健科'}],
+            '专科科室': [
+                {id: 7, name: '眼科'}, {id: 8, name: '耳鼻喉科'}, {id: 9, name: '口腔科'},
+                {id: 10, name: '皮肤科'}, {id: 47, name: '男科'}, {id: 48, name: '肿瘤科'},
+                {id: 50, name: '老年病科'}, {id: 51, name: '过敏反应科'}
+            ],
+            '医技科室': [
+                {id: 33, name: '急诊科'}, {id: 34, name: '重症医学科ICU'}, {id: 35, name: '麻醉科'},
+                {id: 36, name: '手术室'}, {id: 39, name: '检验科'}, {id: 40, name: '放射科'},
+                {id: 41, name: '超声科'}, {id: 42, name: '心电图室'}, {id: 43, name: '病理科'},
+                {id: 44, name: '药剂科'}, {id: 45, name: '消毒供应中心'}
+            ],
+            '中医康复': [{id: 46, name: '中医科'}, {id: 47, name: '针灸推拿科'}, {id: 48, name: '康复医学科'}],
+            '其他': [{id: 49, name: '营养科'}, {id: 52, name: '体检中心'}]
+        };
+
+        let selectedDept = null;
+        let selectedDoctor = null;
+        let doctors = [];
+        let remainingCache = {}; // doctorId|date -> { remaining, dailyLimit, used }
+
+        const todayStr = () => {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
+        const remainClass = (remaining, limit) => {
+            if (remaining <= 0) return 'empty';
+            if (remaining <= Math.max(3, Math.floor(limit * 0.2))) return 'low';
+            return '';
+        };
+
+        const fetchRemaining = async (doctorId, date) => {
+            const key = `${doctorId}|${date}`;
+            try {
+                const res = await fetch(`/doctor/registerInfo/remainingSlots?doctorId=${encodeURIComponent(doctorId)}&date=${encodeURIComponent(date)}`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1 && res.content) {
+                    remainingCache[key] = res.content;
+                    return res.content;
+                }
+            } catch (e) {
+                console.warn('查询剩余号失败', e);
+            }
+            return { remaining: '-', dailyLimit: 50, used: 0 };
+        };
+
+        const TIME_SLOTS = [
+            { label: '上午 08:00-09:00', start: '08:00:00', endHour: 9 },
+            { label: '上午 09:00-10:00', start: '09:00:00', endHour: 10 },
+            { label: '上午 10:00-11:00', start: '10:00:00', endHour: 11 },
+            { label: '上午 11:00-12:00', start: '11:00:00', endHour: 12 },
+            { label: '下午 14:00-15:00', start: '14:00:00', endHour: 15 },
+            { label: '下午 15:00-16:00', start: '15:00:00', endHour: 16 },
+            { label: '下午 16:00-17:00', start: '16:00:00', endHour: 17 },
+            { label: '下午 17:00-18:00', start: '17:00:00', endHour: 18 }
+        ];
+
+        const isSlotPast = (date, slot) => {
+            if (!date || date !== todayStr()) return false;
+            return new Date().getHours() >= slot.endHour;
+        };
+
+        const renderTimeSlots = (date) => {
+            const wrap = $("slot-grid");
+            if (!wrap) return;
+            wrap.innerHTML = TIME_SLOTS.map((slot, idx) => {
+                const past = isSlotPast(date, slot);
+                return `<button type="button" class="slot-btn" data-slot-idx="${idx}" data-start="${slot.start}" ${past ? 'disabled' : ''}>${slot.label}${past ? '（已过）' : ''}</button>`;
+            }).join('');
+            wrap.querySelectorAll('.slot-btn:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    wrap.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    updateConfirmEnabled();
+                });
+            });
+            // 自动选中第一个可用时段
+            const first = wrap.querySelector('.slot-btn:not(:disabled)');
+            if (first) {
+                first.classList.add('selected');
+            }
+            updateConfirmEnabled();
+        };
+
+        const getSelectedSlotStart = () => {
+            const btn = document.querySelector('#slot-grid .slot-btn.selected');
+            return btn ? btn.getAttribute('data-start') : null;
+        };
+
+        const updateConfirmEnabled = () => {
+            const confirmBtn = $("modal-confirm");
+            const banner = $("remain-banner");
+            if (!confirmBtn) return;
+            const remText = banner ? banner.dataset.remaining : '';
+            const rem = remText === '' ? NaN : Number(remText);
+            const hasSlot = !!getSelectedSlotStart();
+            if (Number.isFinite(rem) && rem <= 0) {
+                confirmBtn.disabled = true;
+                return;
+            }
+            confirmBtn.disabled = !hasSlot;
+        };
+
+        $("back-btn").addEventListener("click", () => {
+            window.location.href = `patient-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}`;
+        });
+
+        const loadDepts = async () => {
+            try {
+                const res = await fetch('/doctor/deptInfo/queryByPage?page=1&size=100', {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    const dbDepts = res.content.content;
+                    deptGroups = buildDeptGroupsFromDB(dbDepts);
+                } else {
+                    deptGroups = defaultDeptGroups;
+                }
+
+                renderDepts();
+            } catch (error) {
+                deptGroups = defaultDeptGroups;
+                renderDepts();
+            }
+        };
+
+        const buildDeptGroupsFromDB = (dbDepts) => {
+            const groups = {
+                '综合科室': [],
+                '内科系统': [],
+                '外科系统': [],
+                '妇产科': [],
+                '儿科': [],
+                '专科科室': [],
+                '医技科室': [],
+                '中医康复': [],
+                '其他': []
+            };
+
+            const categoryMap = {
+                '全科医学科': '综合科室',
+                '内科': '内科系统', '心血管内科': '内科系统', '呼吸内科': '内科系统',
+                '消化内科': '内科系统', '肾内科': '内科系统', '内分泌科': '内科系统',
+                '风湿免疫科': '内科系统', '血液内科': '内科系统', '感染科': '内科系统',
+                '神经内科': '内科系统',
+                '外科': '外科系统', '神经外科': '外科系统', '心胸外科': '外科系统',
+                '泌尿外科': '外科系统', '肝胆外科': '外科系统', '胃肠外科': '外科系统',
+                '乳腺外科': '外科系统', '血管外科': '外科系统', '烧伤整形外科': '外科系统',
+                '肛肠科': '外科系统', '骨科': '外科系统',
+                '妇产科': '妇产科', '妇科': '妇产科', '产科': '妇产科', '新生儿科': '妇产科',
+                '儿科': '儿科', '儿童保健科': '儿科',
+                '眼科': '专科科室', '耳鼻喉科': '专科科室', '口腔科': '专科科室',
+                '皮肤科': '专科科室', '男科': '专科科室', '肿瘤科': '专科科室',
+                '老年病科': '专科科室', '过敏反应科': '专科科室', '敏感反应科': '专科科室',
+                '急诊科': '医技科室', '重症医学科ICU': '医技科室', '麻醉科': '医技科室',
+                '手术室': '医技科室', '检验科': '医技科室', '放射科': '医技科室',
+                '超声科': '医技科室', '心电图室': '医技科室', '病理科': '医技科室',
+                '药剂科': '医技科室', '消毒供应中心': '医技科室',
+                '中医科': '中医康复', '针灸推拿科': '中医康复', '康复医学科': '中医康复',
+                '营养科': '其他', '体检中心': '其他'
+            };
+
+            dbDepts.forEach(dept => {
+                const deptName = dept.deptName || dept.name;
+                const deptId = dept.deptId || dept.id;
+                const category = categoryMap[deptName] || '其他';
+                groups[category].push({ id: deptId, name: deptName });
+            });
+
+            Object.keys(groups).forEach(key => {
+                if (groups[key].length === 0) {
+                    delete groups[key];
+                }
+            });
+
+            return groups;
+        };
+
+        const renderDepts = () => {
+            const container = $("dept-container");
+            let html = '';
+
+            Object.keys(deptGroups).forEach((groupName, index) => {
+                const deptsInGroup = deptGroups[groupName];
+                
+                const isFirst = index === 0;
+                
+                html += `
+                    <div class="dept-group${isFirst ? ' expanded' : ''}" data-group="${groupName}">
+                        <div class="dept-group-title">
+                            <span>${groupName} (${deptsInGroup.length})</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="dept-group-content">
+                `;
+                
+                deptsInGroup.forEach(dept => {
+                    const displayName = dept.name === '全科医学科' 
+                        ? '全科医学科（当你不知道选择哪个的时候请选择这个）' 
+                        : dept.name;
+                    
+                    html += `
+                        <div class="dept-item" data-dept-id="${dept.id}" data-dept-name="${dept.name}">
+                            <div class="dept-icon">${deptIcons[dept.name] || '🏥'}</div>
+                            <div class="dept-name">${displayName}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+            });
+
+            container.innerHTML = html;
+
+            document.querySelectorAll('.dept-group-title').forEach(title => {
+                title.addEventListener('click', () => {
+                    const group = title.parentElement;
+                    group.classList.toggle('expanded');
+                });
+            });
+
+            container.querySelectorAll('.dept-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    container.querySelectorAll('.dept-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    selectedDept = {
+                        id: item.dataset.deptId,
+                        name: item.dataset.deptName
+                    };
+                    loadDoctorsByDept(selectedDept);
+                });
+            });
+        };
+
+        const loadDoctorsByDept = async (dept) => {
+            const container = $("doctor-container");
+            $("doctor-list-title").textContent = `${dept.name} - 选择医生`;
+
+            container.innerHTML = '<div class="empty-state"><span>⏳</span><p>加载医生中...</p></div>';
+
+            try {
+                let url = '/doctor/doctorInfo/queryByPage?page=1&size=50';
+                if (dept.name !== '全科医学科') {
+                    url += `&deptId=${encodeURIComponent(dept.id)}`;
+                }
+                const res = await fetch(url, {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1 && res.content && res.content.content) {
+                    doctors = res.content.content;
+
+                    if (doctors.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <span>😔</span>
+                                <p>暂无${dept.name}科室的医生</p>
+                                <p style="font-size: 13px; margin-top: 8px;">您可以选择其他科室或联系医院咨询</p>
+                            </div>
+                        `;
+                    } else {
+                        const dateForList = todayStr();
+                        container.innerHTML = doctors.map(doc => {
+                            const statusClass = doc.docStatus === 1 ? 'available' : 'unavailable';
+                            const statusText = doc.docStatus === 1 ? '可预约' : '休息中';
+                            const doctorName = doc.doctorName || doc.doctor_name || '未知医生';
+                            const doctorDept = doc.dept || doc.deptName || dept.name;
+                            const doctorId = doc.doctorId || doc.doctor_id;
+                            
+                            return `
+                                <div class="doctor-item doctor-card ${statusClass}" data-doctor-id="${doctorId}">
+                                    <div class="doctor-avatar">${(doctorName.charAt(0))}</div>
+                                    <div class="doctor-info">
+                                        <h4>${doctorName}</h4>
+                                        <p>${doc.title || '医生'} | ${doctorDept}</p>
+                                        <div class="doctor-tags">
+                                            ${doc.specialty ? `<span class="tag">${doc.specialty}</span>` : ''}
+                                            <span class="tag ${statusClass}">${statusText}</span>
+                                            <span class="tag remain" data-remain-for="${doctorId}">剩余号加载中…</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        // 异步填充今日剩余号
+                        doctors.forEach(async (doc) => {
+                            const doctorId = doc.doctorId || doc.doctor_id;
+                            if (!doctorId) return;
+                            const info = await fetchRemaining(doctorId, dateForList);
+                            const el = container.querySelector(`[data-remain-for="${doctorId}"]`);
+                            if (!el) return;
+                            const rem = Number(info.remaining);
+                            const limit = Number(info.dailyLimit) || 50;
+                            el.textContent = Number.isFinite(rem) ? `剩余 ${rem}/${limit}` : '剩余号 —';
+                            el.className = `tag remain ${remainClass(rem, limit)}`.trim();
+                        });
+
+                        container.querySelectorAll('.doctor-item').forEach(item => {
+                            const doctorId = item.dataset.doctorId;
+                            const doctor = doctors.find(d => (d.doctorId || d.doctor_id) == doctorId);
+                            
+                            if (doctor && (doctor.docStatus !== 1)) {
+                                item.style.opacity = '0.6';
+                                item.style.cursor = 'not-allowed';
+                                return;
+                            }
+                            
+                            item.addEventListener('click', () => {
+                                container.querySelectorAll('.doctor-item').forEach(i => i.classList.remove('selected'));
+                                item.classList.add('selected');
+                                selectedDoctor = doctors.find(d => (d.doctorId || d.doctor_id) == doctorId);
+                                showRegisterModal();
+                            });
+                        });
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <span>😔</span>
+                            <p>获取医生列表失败</p>
+                            <p style="font-size: 13px; margin-top: 8px;">错误信息: ${res.msg || '未知错误'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载医生失败:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span>❌</span>
+                        <p>网络错误，无法加载医生列表</p>
+                    </div>
+                `;
+            }
+        };
+
+        const updateModalRemaining = async () => {
+            const banner = $("remain-banner");
+            const dateEl = $("reg-date");
+            const confirmBtn = $("modal-confirm");
+            if (!banner || !dateEl || !selectedDoctor) return;
+            const doctorId = selectedDoctor.doctorId || selectedDoctor.doctor_id;
+            const date = dateEl.value || todayStr();
+            banner.textContent = '正在查询剩余号…';
+            banner.className = 'remain-banner';
+            banner.dataset.remaining = '';
+            renderTimeSlots(date);
+            const info = await fetchRemaining(doctorId, date);
+            const rem = Number(info.remaining);
+            const limit = Number(info.dailyLimit) || 50;
+            const used = Number(info.used) || 0;
+            const cls = remainClass(rem, limit);
+            banner.className = `remain-banner ${cls}`.trim();
+            if (!Number.isFinite(rem)) {
+                banner.textContent = '暂时无法获取剩余号，仍可尝试预约';
+                banner.dataset.remaining = '';
+                updateConfirmEnabled();
+                return;
+            }
+            banner.dataset.remaining = String(rem);
+            if (rem <= 0) {
+                banner.textContent = `该医生 ${date} 号源已满（${used}/${limit}），请换日期或其他医生`;
+            } else {
+                banner.textContent = `当前医生剩余号：${rem}（已挂 ${used}/${limit}，每日限 ${limit} 号）`;
+            }
+            updateConfirmEnabled();
+        };
+
+        const showRegisterModal = () => {
+            const modal = $("modal-overlay");
+            const content = $("modal-content");
+
+            const doctorInfo = selectedDoctor || {};
+            const doctorName = doctorInfo.doctorName || doctorInfo.doctor_name || '';
+            
+            content.innerHTML = `
+                <div id="remain-banner" class="remain-banner">正在查询剩余号…</div>
+                <div class="form-group">
+                    <label>患者姓名</label>
+                    <input type="text" id="reg-patient-name" value="${userName || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label>预约科室</label>
+                    <input type="text" id="reg-dept" value="${selectedDept ? selectedDept.name : ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>预约医生</label>
+                    <input type="text" id="reg-doctor" value="${doctorName}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>医生职称</label>
+                    <input type="text" id="reg-title" value="${doctorInfo.title || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>预约日期</label>
+                    <input type="date" id="reg-date" value="${todayStr()}" min="${todayStr()}" required>
+                </div>
+                <div class="form-group">
+                    <label>就诊时段</label>
+                    <div id="slot-grid" class="slot-grid"></div>
+                    <p class="slot-hint">请先选择日期，再选择可用时段</p>
+                </div>
+                <div class="form-group">
+                    <label>联系电话</label>
+                    <input type="tel" id="reg-phone" placeholder="请输入联系电话" required>
+                </div>
+            `;
+
+            modal.classList.add('show');
+            $("modal-btns").style.display = 'flex';
+            $("modal-confirm").disabled = true;
+            $("reg-date").addEventListener('change', updateModalRemaining);
+            updateModalRemaining();
+        };
+
+        $("modal-cancel").addEventListener("click", () => {
+            $("modal-overlay").classList.remove('show');
+            document.querySelectorAll('.doctor-item').forEach(i => i.classList.remove('selected'));
+            selectedDoctor = null;
+        });
+
+        $("modal-overlay").addEventListener("click", (e) => {
+            if (e.target === $("modal-overlay")) {
+                $("modal-overlay").classList.remove('show');
+                document.querySelectorAll('.doctor-item').forEach(i => i.classList.remove('selected'));
+                selectedDoctor = null;
+            }
+        });
+
+        $("modal-confirm").addEventListener("click", async () => {
+            const nameEl = $("reg-patient-name");
+            const phoneEl = $("reg-phone");
+            const dateEl = $("reg-date");
+
+            if (!nameEl || !phoneEl || !dateEl) {
+                alert("请先选择医生");
+                return;
+            }
+
+            const patientName = nameEl.value.trim();
+            const phone = phoneEl.value.trim();
+            const date = dateEl.value;
+            const slotStart = getSelectedSlotStart();
+            const slotBtn = document.querySelector('#slot-grid .slot-btn.selected');
+            const slotLabel = slotBtn ? slotBtn.textContent.replace('（已过）', '') : '';
+
+            if (!patientName || !phone || !date) {
+                alert("请填写完整的预约信息");
+                return;
+            }
+
+            if (!slotStart) {
+                alert("请选择就诊时段");
+                return;
+            }
+
+            if (!selectedDoctor) {
+                alert("请先选择一位医生");
+                return;
+            }
+
+            if ($("modal-confirm").disabled) {
+                alert("该医生当日号源已满或未选择时段，请更换日期/时段或其他医生");
+                return;
+            }
+
+            const doctorInfo = selectedDoctor || {};
+            const payload = {
+                patientId: parseInt(userId),
+                doctorId: doctorInfo.doctorId ? parseInt(doctorInfo.doctorId) : parseInt(doctorInfo.doctor_id),
+                deptId: selectedDept ? parseInt(selectedDept.id) : null,
+                registerTime: date + ' ' + slotStart
+            };
+
+            try {
+                const response = await fetch('/doctor/registerInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP错误: ' + response.status + ' ' + response.statusText);
+                }
+
+                const res = await response.json();
+                console.log('挂号响应:', res);
+
+                if (res.code === 1) {
+                    const content = $("modal-content");
+                    content.innerHTML = `
+                        <div class="success-tip">
+                            <div class="icon">✓</div>
+                            <h4>预约成功！</h4>
+                            <p>您已成功预约${doctorInfo.doctorName || '该科室'}医生，请按时就诊。</p>
+                            <p style="font-size: 13px; margin-top: 8px;">预约日期：${date}</p>
+                            <p style="font-size: 13px; margin-top: 4px;">就诊时段：${slotLabel}</p>
+                        </div>
+                    `;
+                    $("modal-btns").style.display = 'none';
+
+                    setTimeout(() => {
+                        $("modal-overlay").classList.remove('show');
+                        $("modal-btns").style.display = 'flex';
+                        document.querySelectorAll('.doctor-item').forEach(i => i.classList.remove('selected'));
+                        selectedDoctor = null;
+                        if (selectedDept) loadDoctorsByDept(selectedDept);
+                    }, 2500);
+                } else {
+                    alert(res.msg || "预约失败，请稍后重试");
+                }
+            } catch (error) {
+                console.error('挂号请求失败:', error);
+                alert("网络错误：" + error.message);
+            }
+        });
+
+        loadDepts();
+    </script>
+</body>
+</html>

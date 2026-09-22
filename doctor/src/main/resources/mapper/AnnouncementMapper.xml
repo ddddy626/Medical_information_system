@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.AnnouncementMapper">
+    <resultMap id="BaseResultMap" type="com.dyh.doctor.domain.AnnouncementEntity">
+        <id column="announcement_id" property="announcementId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="author_id" property="authorId"/>
+        <result column="author_name" property="authorName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+    <select id="queryByPage" resultMap="BaseResultMap">
+        SELECT * FROM announcement_info WHERE status=1 ORDER BY announcement_id DESC LIMIT #{param1}, #{param2}
+    </select>
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM announcement_info WHERE status=1
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="announcementId">
+        INSERT INTO announcement_info (title, content, author_id, author_name, create_time, status)
+        VALUES (#{title}, #{content}, #{authorId}, #{authorName}, #{createTime}, #{status})
+    </insert>
+    <update id="updateById">
+        UPDATE announcement_info SET title=#{title}, content=#{content}, status=#{status} WHERE announcement_id=#{announcementId}
+    </update>
+    <delete id="deleteById">
+        DELETE FROM announcement_info WHERE announcement_id=#{announcementId}
+    </delete>
+</mapper>

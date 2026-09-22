@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dyh.doctor.mapper.CheckInfoMapper">
+
+    <resultMap id="checkInfoMap" type="com.dyh.doctor.domain.CheckInfoEntity">
+        <result column="check_id" property="checkId" />
+        <result column="check_name" property="checkName" />
+        <result column="check_time" property="checkTime" />
+        <result column="result" property="result" />
+        <result column="check_status" property="checkStatus" />
+        <result column="check_fee" property="checkFee" />
+        <result column="record_id" property="recordId" />
+    </resultMap>
+
+    <sql id="baseSql">
+        SELECT
+            check_info.check_id, check_info.check_name, check_info.check_time, check_info.result, check_info.check_status, check_info.check_fee, check_info.record_id
+        FROM check_info
+        WHERE 1 = 1 
+    </sql>
+
+    <sql id="condition">
+        <if test="checkInfo.checkId != null">
+             and check_info.check_id = #{checkInfo.checkId}
+        </if>
+        <if test="checkInfo.checkName != null and checkInfo.checkName != ''">
+             and check_info.check_name LIKE concat('%', #{checkInfo.checkName}, '%')
+        </if>
+        <if test="checkInfo.checkTime != null and checkInfo.checkTime != ''">
+             and check_info.check_time LIKE concat('%', #{checkInfo.checkTime}, '%')
+        </if>
+        <if test="checkInfo.result != null and checkInfo.result != ''">
+             and check_info.result LIKE concat('%', #{checkInfo.result}, '%')
+        </if>
+        <if test="checkInfo.checkStatus != null">
+             and check_info.check_status = #{checkInfo.checkStatus}
+        </if>
+        <if test="checkInfo.checkFee != null">
+             and check_info.check_fee = #{checkInfo.checkFee}
+        </if>
+        <if test="checkInfo.recordId != null">
+             and check_info.record_id = #{checkInfo.recordId}
+        </if>
+    </sql>
+
+    <select id="queryById" resultMap="checkInfoMap">
+        <include refid="baseSql"></include>
+        AND check_info.check_id = #{checkId}
+    </select>
+
+    <select id="queryAllByLimit" resultMap="checkInfoMap">
+        <include refid="baseSql"></include>
+        <include refid="condition"></include>
+        order by check_id desc
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from (
+        <include refid="baseSql"></include>
+        <include refid="condition"></include> ) t
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="checkId">
+        insert into check_info(check_name, check_time, result, check_status, check_fee, record_id)
+        values(#{checkName}, #{checkTime}, #{result}, #{checkStatus}, #{checkFee}, #{recordId})
+    </insert>
+
+    <update id="update">
+        update check_info
+        <set>
+            <if test="checkName != null and checkName != ''">
+                check_name = #{checkName},
+            </if>
+            <if test="checkTime != null and checkTime != ''">
+                check_time = #{checkTime},
+            </if>
+            <if test="result != null and result != ''">
+                result = #{result},
+            </if>
+            <if test="checkStatus != null">
+                check_status = #{checkStatus},
+            </if>
+            <if test="checkFee != null">
+                check_fee = #{checkFee},
+            </if>
+            <if test="recordId != null">
+                record_id = #{recordId},
+            </if>
+        </set>
+        WHERE check_id = #{checkId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM check_info WHERE check_id = #{checkId}
+    </delete>
+</mapper>
+

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>患者服务中心 - 医疗诊疗系统</title>
+    <link rel="stylesheet" href="css/med-tech.css?v=uiplan2">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <div class="brand">
+                <span class="brand-tag">MEDICAL INTELLIGENCE</span>
+                <h1 class="nav-active">患者服务中心</h1>
+                <p>智能导诊、在线咨询、病历沉淀与费用闭环服务</p>
+            </div>
+            <div class="user-info">
+                <div id="weather-tips" class="home-weather-chip-wrap" aria-live="polite"></div>
+                <div class="avatar-dot" id="avatar-dot">患</div>
+                <span class="user-name" id="user-name">患者</span>
+                <button class="logout-btn" id="logout-btn">退出登录</button>
+            </div>
+        </div>
+
+        <section class="hero-panel">
+            <div class="hero-copy">
+                <span class="brand-tag">HEALTH COMMAND CENTER</span>
+                <h2>个人健康数据与诊疗服务一屏联动</h2>
+                <p>围绕问诊、挂号、病历、缴费和健康档案形成完整就医链路。系统会把在线咨询沉淀为病历线索，让患者在复诊、随访和慢病管理中获得更连续的医疗体验。</p>
+                <div class="hero-metrics">
+                    <div class="metric"><strong>24h</strong><span>在线健康咨询入口</span></div>
+                    <div class="metric"><strong>AI</strong><span>症状预问诊与建议</span></div>
+                    <div class="metric"><strong>闭环</strong><span>挂号到缴费全流程</span></div>
+                </div>
+            </div>
+            <div class="vital-orb"><div class="vital-core">HEALTH<br>SYNC</div></div>
+        </section>
+
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-kicker">CONSULT</div>
+                <div class="stat-value" id="stat-consult">0</div>
+                <div class="stat-label">咨询次数</div>
+                <div class="stat-foot">可用于复诊沟通和病情追踪</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-kicker">RECORD</div>
+                <div class="stat-value" id="stat-records">0</div>
+                <div class="stat-label">病历记录</div>
+                <div class="stat-foot">自动沉淀 AI 初筛和就诊记录</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-kicker">VISIT</div>
+                <div class="stat-value" id="stat-visits">0</div>
+                <div class="stat-label">就诊次数</div>
+                <div class="stat-foot">挂号、接诊与随访状态同步</div>
+            </div>
+        </div>
+
+        <section class="card">
+            <h3>智能健康洞察</h3>
+            <div class="insight-grid">
+                <div class="insight"><strong>分诊提示</strong><span>根据症状关键词生成就诊建议，帮助患者选择合适科室，减少无效排队。</span></div>
+                <div class="insight"><strong>风险提醒</strong><span>胸痛、持续高热、呼吸困难等急症关键词会优先提示线下急诊处理。</span></div>
+                <div class="insight"><strong>数据沉淀</strong><span>AI 建议可写入病历，医生接诊时能够更快了解患者主诉与初步情况。</span></div>
+            </div>
+        </section>
+
+        <div class="action-cards">
+            <div class="action-card" id="action-consult"><div class="action-icon">AI</div><div class="action-content"><h3>在线咨询</h3><p>与医生实时沟通，支持 AI 预问诊和人工医生接入。</p></div></div>
+            <div class="action-card" id="action-records"><div class="action-icon">MR</div><div class="action-content"><h3>病历管理</h3><p>查看病历、诊断、治疗方案和随访建议。</p></div></div>
+            <div class="action-card" id="action-appointment"><div class="action-icon">AP</div><div class="action-content"><h3>预约挂号</h3><p>在线预约门诊，减少现场等待时间。</p></div></div>
+            <div class="action-card" id="action-health"><div class="action-icon">ECG</div><div class="action-content"><h3>健康档案</h3><p>统一查看体检报告、健康指标和慢病数据。</p></div></div>
+            <div class="action-card" id="action-message"><div class="action-icon">MSG</div><div class="action-content"><h3>医患留言</h3><p>向医生发送病情补充、复诊问题和用药反馈。</p></div></div>
+            <div class="action-card" id="action-payment"><div class="action-icon">PAY</div><div class="action-content"><h3>缴费中心</h3><p>查看待缴订单，完成移动支付和缴费结果查询。</p></div></div>
+        </div>
+
+        <div class="ai-section">
+            <h3>AI 健康建议</h3>
+            <div id="ai-quick-list"></div>
+            <div class="ai-input-area">
+                <textarea id="ai-question" placeholder="请描述您的症状、持续时间、既往病史或当前用药情况..."></textarea>
+                <button class="ai-submit-btn" id="ai-suggest-btn">生成初步健康建议</button>
+            </div>
+            <div class="ai-result" id="ai-result"></div>
+        </div>
+    </div>
+
+    <script src="js/weather-tips.js?v=perf1"></script>
+    <script src="js/login-announcements.js?v=1"></script>
+    <script src="js/ui-enhance.js?v=perf1"></script>
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const params = new URLSearchParams(window.location.search);
+        const rawId = params.get("userId");
+        const rawName = params.get("userName");
+        let userId = (!rawId || rawId === "null" || rawId === "undefined") ? null : rawId;
+        let userName = (!rawName || rawName === "null" || rawName === "undefined") ? null : rawName;
+
+        if (!userId) userId = sessionStorage.getItem("patientUserId");
+        if (!userName) userName = sessionStorage.getItem("patientUserName");
+        if (!userId || userId === "null" || userId === "undefined") {
+            window.location.replace("index.html");
+        } else if (userName) {
+            $("user-name").textContent = userName;
+            $("avatar-dot").textContent = (userName.charAt(0) || "患").toUpperCase();
+        }
+
+        $("logout-btn").addEventListener("click", () => {
+            fetch("/doctor/userInfo/logout", { method: "POST", credentials: "include" }).finally(() => {
+                sessionStorage.removeItem("patientUserId");
+                sessionStorage.removeItem("patientUserName");
+                window.location.href = "index.html";
+            });
+        });
+
+        const loadStats = async () => {
+            if (!userId) return;
+            try {
+                // 并行请求，避免串行等待拖慢首屏
+                const [consultRes, recordRes, regRes] = await Promise.all([
+                    fetch(`/doctor/consultInfo/queryByPage?patientId=${userId}&page=1&size=1`, { credentials: "include" }).then(r => r.json()).catch(() => null),
+                    fetch(`/doctor/recordInfo/queryByPage?patientId=${userId}&page=1&size=1`, { credentials: "include" }).then(r => r.json()).catch(() => null),
+                    fetch(`/doctor/registerInfo/queryByPage?patientId=${userId}&page=1&size=1`, { credentials: "include" }).then(r => r.json()).catch(() => null)
+                ]);
+                if (consultRes && consultRes.code === 1 && consultRes.content) {
+                    $("stat-consult").textContent = consultRes.content.totalElements != null
+                        ? consultRes.content.totalElements
+                        : (consultRes.content.content ? consultRes.content.content.length : 0);
+                }
+                if (recordRes && recordRes.code === 1 && recordRes.content) {
+                    $("stat-records").textContent = recordRes.content.totalElements || 0;
+                }
+                if (regRes && regRes.code === 1 && regRes.content) {
+                    $("stat-visits").textContent = regRes.content.totalElements || 0;
+                }
+            } catch (e) { console.error("加载统计失败", e); }
+        };
+
+        const aiQuickQuestionPool = [
+            "发热伴随咽痛和头痛三天，需要先做哪些检查？",
+            "胸闷心慌反复出现，是否需要尽快去急诊？",
+            "血压连续一周偏高，日常应该如何调整？",
+            "最近夜间咳嗽明显加重，应该挂什么科？"
+        ];
+
+        const renderAiQuickButtons = () => {
+            $("ai-quick-list").innerHTML = aiQuickQuestionPool
+                .map((text) => `<button class="quick-ai-btn" type="button" data-ai-q="${text}">${text}</button>`)
+                .join("");
+            document.querySelectorAll("[data-ai-q]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    $("ai-question").value = btn.getAttribute("data-ai-q") || "";
+                    $("ai-question").focus();
+                });
+            });
+        };
+
+        const showResult = (box, ok, text) => {
+            box.className = ok ? "ai-result show success" : "ai-result show warn";
+            box.textContent = text;
+        };
+
+        $("ai-suggest-btn").addEventListener("click", async () => {
+            const question = $("ai-question").value.trim();
+            if (!question) return showResult($("ai-result"), false, "请先输入健康问题。");
+            try {
+                const data = await fetch("/doctor/ai/suggest", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question }),
+                    credentials: "include"
+                }).then(r => r.json());
+                const suggestion = data && data.content ? (data.content.suggestion || "") : "";
+                if (data.code !== 1 || !suggestion) return showResult($("ai-result"), false, data.msg || "未获取到建议，请稍后重试。");
+                showResult($("ai-result"), true, suggestion + "\n\n提示：AI 建议仅供参考，必要时请及时线下就医。");
+            } catch (error) {
+                showResult($("ai-result"), false, "网络异常，请稍后重试。");
+            }
+        });
+
+        const go = (page) => {
+            window.location.href = `${page}?userId=${encodeURIComponent(userId || "")}&userName=${encodeURIComponent(userName || "")}`;
+        };
+        $("action-consult").addEventListener("click", () => go("chat.html"));
+        $("action-appointment").addEventListener("click", () => go("register.html"));
+        $("action-records").addEventListener("click", () => go("patient-records.html"));
+        $("action-health").addEventListener("click", () => go("health-profile.html"));
+        $("action-message").addEventListener("click", () => go("patient-message.html"));
+        $("action-payment").addEventListener("click", () => go("patient-payment.html"));
+
+        renderAiQuickButtons();
+        // 天气 / 公告延后，不阻塞首屏交互
+        requestAnimationFrame(() => {
+            loadStats().then(() => {
+                if (window.UiEnhance) UiEnhance.enhance(document);
+            });
+        });
+        setTimeout(() => {
+            if (window.WeatherTips) WeatherTips.mount("#weather-tips", { compact: true });
+            if (window.LoginAnnouncements) LoginAnnouncements.showIfPending();
+        }, 0);
+    </script>
+</body>
+</html>

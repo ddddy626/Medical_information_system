@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板 - 患者中心</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #1b8f46;
+            --warning-color: #d65b00;
+        }
+
+        * { box-sizing: border-box; }
+
+        body.med-tech-page { min-height: 100vh; position: relative; }
+
+        body.med-tech-page .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: #f3f4f6;
+            color: #223656;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            margin: 0 0 20px;
+            font-size: 18px;
+            color: #223656;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .message-list {
+            margin-top: 20px;
+        }
+
+        .message-item {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 16px;
+        }
+
+        .message-item.sent {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .message-sender {
+            font-weight: 500;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: rgba(240, 244, 248, 0.55);
+        }
+
+        .message-content {
+            font-size: 14px;
+            color: #ffffff;
+            line-height: 1.5;
+        }
+
+        .message-reply {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.32);
+            border-radius: 8px;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        .message-item.received {
+            background: rgba(44, 123, 229, 0.1);
+            border-color: rgba(44, 123, 229, 0.28);
+        }
+
+        .reply-label {
+            font-size: 12px;
+            color: #7ee8e0;
+            margin-bottom: 4px;
+        }
+
+        .reply-text {
+            font-size: 13px;
+            color: #ffffff;
+        }
+
+        .reply-form textarea {
+            width: 100%;
+            min-height: 72px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .reply-form .btn {
+            margin-top: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <div class="brand">
+                <h1 class="nav-active">💬 留言板</h1>
+            </div>
+            <div class="nav-links">
+                <a href="patient-dashboard.html" id="back-link">返回首页</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📝 发送留言</h3>
+            <form id="message-form">
+                <div class="form-group">
+                    <label for="dept-select">选择科室</label>
+                    <select id="dept-select" required>
+                        <option value="">请选择科室</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="doctor-select">选择医生</label>
+                    <select id="doctor-select" required>
+                        <option value="">请先选择科室</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message-content">留言内容</label>
+                    <textarea id="message-content" placeholder="请输入您的留言内容..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">发送留言</button>
+            </form>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+            <h3>📪 我的留言记录</h3>
+            <div id="message-list" class="message-list">
+                <div class="empty-state">
+                    <p>暂无留言记录</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawUserId = urlParams.get('userId');
+        let userId = (!rawUserId || rawUserId === 'null' || rawUserId === 'undefined') ? null : rawUserId;
+        if (!userId) userId = sessionStorage.getItem('patientUserId');
+        const rawUserName = urlParams.get('userName');
+        let userName = (!rawUserName || rawUserName === 'null' || rawUserName === 'undefined') ? null : rawUserName;
+        if (!userName) userName = sessionStorage.getItem('patientUserName');
+
+        if (!userId) {
+            window.location.href = 'index.html';
+        }
+
+        const escapeHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+        // 设置返回链接带参数
+        $('back-link').href = `patient-dashboard.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName || '')}`;
+
+        const defaultDepartments = [
+            {id: 1, name: '内科'}, {id: 2, name: '外科'}, {id: 3, name: '儿科'},
+            {id: 4, name: '妇产科'}, {id: 5, name: '眼科'}, {id: 6, name: '耳鼻喉科'},
+            {id: 7, name: '口腔科'}, {id: 8, name: '皮肤科'}, {id: 9, name: '神经内科'},
+            {id: 10, name: '骨科'}, {id: 11, name: '心血管内科'}, {id: 12, name: '呼吸内科'},
+            {id: 13, name: '消化内科'}, {id: 14, name: '肾内科'}, {id: 15, name: '内分泌科'},
+            {id: 16, name: '风湿免疫科'}, {id: 17, name: '血液内科'}, {id: 18, name: '感染科'},
+            {id: 19, name: '全科医学科'}, {id: 20, name: '神经外科'}, {id: 21, name: '心胸外科'},
+            {id: 22, name: '泌尿外科'}, {id: 23, name: '肝胆外科'}, {id: 24, name: '胃肠外科'},
+            {id: 25, name: '乳腺外科'}, {id: 26, name: '血管外科'}, {id: 27, name: '烧伤整形外科'},
+            {id: 28, name: '肛肠科'}, {id: 29, name: '妇科'}, {id: 30, name: '产科'},
+            {id: 31, name: '新生儿科'}, {id: 32, name: '儿童保健科'}, {id: 33, name: '急诊科'},
+            {id: 34, name: '重症医学科ICU'}, {id: 35, name: '麻醉科'}, {id: 36, name: '手术室'},
+            {id: 37, name: '检验科'}, {id: 38, name: '放射科'}, {id: 39, name: '超声科'},
+            {id: 40, name: '心电图室'}, {id: 41, name: '病理科'}, {id: 42, name: '药剂科'},
+            {id: 43, name: '消毒供应中心'}, {id: 44, name: '中医科'}, {id: 45, name: '针灸推拿科'},
+            {id: 46, name: '康复医学科'}, {id: 47, name: '男科'}, {id: 48, name: '肿瘤科'},
+            {id: 49, name: '营养科'}, {id: 50, name: '老年病科'}, {id: 51, name: '过敏反应科'},
+            {id: 52, name: '体检中心'}
+        ];
+
+        const loadDepartments = async () => {
+            try {
+                const res = await fetch('/doctor/deptInfo/queryByPage?page=1&size=100', {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                let depts = [];
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    depts = res.content.content;
+                } else {
+                    depts = defaultDepartments;
+                }
+
+                const select = $("dept-select");
+                select.innerHTML = '<option value="">请选择科室</option>' +
+                    depts.map(d => `<option value="${d.deptId || d.id}">${d.deptName || d.name}</option>`).join('');
+            } catch (error) {
+                const select = $("dept-select");
+                select.innerHTML = '<option value="">请选择科室</option>' +
+                    defaultDepartments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            }
+        };
+
+        const loadDoctorsByDept = async (deptId) => {
+            try {
+                const res = await fetch(`/doctor/doctorInfo/queryByPage?dept_id=${deptId}&page=1&size=50`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                const select = $("doctor-select");
+                if (res.code === 1 && res.content && res.content.content && res.content.content.length > 0) {
+                    const doctors = res.content.content;
+                    select.innerHTML = '<option value="">请选择医生</option>' +
+                        doctors.map(d => `<option value="${d.doctorId}">${d.doctorName} - ${d.title}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">该科室暂无医生</option>';
+                }
+            } catch (error) {
+                $("doctor-select").innerHTML = '<option value="">加载医生失败</option>';
+            }
+        };
+
+        $("dept-select").addEventListener("change", (e) => {
+            const deptId = e.target.value;
+            if (deptId) {
+                loadDoctorsByDept(deptId);
+            } else {
+                $("doctor-select").innerHTML = '<option value="">请先选择科室</option>';
+            }
+        });
+
+        const loadMessages = async () => {
+            if (!userId) {
+                $("message-list").innerHTML = '<div class="empty-state"><p>用户ID为空，请重新登录</p></div>';
+                return;
+            }
+
+            const userIdNum = parseInt(userId, 10);
+            if (isNaN(userIdNum)) {
+                $("message-list").innerHTML = '<div class="empty-state"><p>用户ID无效，请重新登录</p></div>';
+                return;
+            }
+
+            try {
+                const res1 = await fetch(`/doctor/messageInfo/queryByPage?senderId=${userIdNum}&page=1&size=50`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                const res2 = await fetch(`/doctor/messageInfo/queryByPage?receiverId=${userIdNum}&page=1&size=50`, {
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                let messages = [];
+
+                if (res1.code === 1 && res1.content && res1.content.content && res1.content.content.length > 0) {
+                    messages = messages.concat(res1.content.content.map(m => ({ ...m, type: 'sent' })));
+                }
+
+                if (res2.code === 1 && res2.content && res2.content.content && res2.content.content.length > 0) {
+                    messages = messages.concat(res2.content.content.map(m => ({ ...m, type: 'received' })));
+                }
+
+                messages.sort((a, b) => new Date(String(b.msgTime).replace(/-/g, '/')) - new Date(String(a.msgTime).replace(/-/g, '/')));
+
+                if (messages.length === 0) {
+                    $("message-list").innerHTML = '<div class="empty-state"><p>暂无留言记录</p></div>';
+                } else {
+                    $("message-list").innerHTML = messages.map(msg => {
+                        if (msg.type === 'sent') {
+                            return `
+                                <div class="message-item sent">
+                                    <div class="message-header">
+                                        <span class="message-sender">发送给医生 #${msg.receiverId || '-'}</span>
+                                        <span class="message-time">${msg.msgTime || ''}</span>
+                                    </div>
+                                    <div class="message-content">${escapeHtml(msg.msgContent)}</div>
+                                    ${msg.replyContent ? `
+                                    <div class="message-reply">
+                                        <div class="reply-label">医生回复：</div>
+                                        <div class="reply-text">${escapeHtml(msg.replyContent)}</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+                        return `
+                            <div class="message-item received">
+                                <div class="message-header">
+                                    <span class="message-sender">医生 #${msg.senderId || '-'} 发来</span>
+                                    <span class="message-time">${msg.msgTime || ''}</span>
+                                </div>
+                                <div class="message-content">${escapeHtml(msg.msgContent)}</div>
+                                ${msg.replyContent ? `
+                                <div class="message-reply">
+                                    <div class="reply-label">我的回复：</div>
+                                    <div class="reply-text">${escapeHtml(msg.replyContent)}</div>
+                                </div>
+                                ` : `
+                                <div class="reply-form">
+                                    <textarea id="reply-${msg.msgId}" placeholder="回复医生留言..."></textarea>
+                                    <button type="button" class="btn btn-primary" onclick="replyToDoctor(${msg.msgId})">发送回复</button>
+                                </div>
+                                `}
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('加载留言失败:', error);
+                $("message-list").innerHTML = '<div class="empty-state"><p>加载留言失败，请稍后重试</p></div>';
+            }
+        };
+
+        window.replyToDoctor = async (msgId) => {
+            const input = document.getElementById('reply-' + msgId);
+            const text = input ? input.value.trim() : '';
+            if (!text) {
+                alert('请输入回复内容');
+                return;
+            }
+            try {
+                const res = await fetch('/doctor/messageInfo/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ msgId: msgId, replyContent: text }),
+                    credentials: 'include'
+                }).then(r => r.json());
+                if (res.code === 1) {
+                    alert('回复成功');
+                    loadMessages();
+                } else {
+                    alert(res.msg || '回复失败');
+                }
+            } catch (e) {
+                alert('网络错误');
+            }
+        };
+
+        $("message-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const doctorId = $("doctor-select").value;
+            const content = $("message-content").value;
+
+            if (!userId || !doctorId || !content.trim()) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            try {
+                const res = await fetch('/doctor/messageInfo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        msgContent: content,
+                        senderId: parseInt(userId, 10),
+                        receiverId: parseInt(doctorId, 10),
+                        msgTime: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-')
+                    }),
+                    credentials: 'include'
+                }).then(r => r.json());
+
+                if (res.code === 1) {
+                    alert('留言发送成功');
+                    $("message-content").value = '';
+                    loadMessages();
+                } else {
+                    alert(res.msg || '发送失败');
+                }
+            } catch (error) {
+                alert('网络错误');
+            }
+        });
+
+        loadDepartments();
+        loadMessages();
+    </script>
+</body>
+</html>

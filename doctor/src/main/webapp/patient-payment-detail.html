@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付详情 - 智慧医疗系统</title>
+    <script src="js/qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body.med-tech-page { min-height: 100vh; }
+        body.med-tech-page .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.96);
+            border-radius: 14px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+        }
+        .topbar h1 { font-size: 18px; color: #223656; }
+        .back-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #374151;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .back-btn:hover { background: #e5e7eb; }
+        .card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .card h2 {
+            font-size: 16px;
+            color: #223656;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px 14px;
+            font-size: 14px;
+        }
+        .detail-grid dt { color: #6b7280; }
+        .detail-grid dd { color: #1f2937; font-weight: 500; word-break: break-all; }
+        .amount-big {
+            font-size: 32px;
+            font-weight: 700;
+            color: #dc2626;
+            text-align: center;
+            margin: 8px 0 4px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-paid { background: #dcfce7; color: #16a34a; }
+        .qr-wrap {
+            text-align: center;
+            padding: 16px 0 8px;
+        }
+        #qr-canvas {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .qr-hint {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .qr-url {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #9ca3af;
+            word-break: break-all;
+            padding: 0 12px;
+        }
+        .pay-method-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .pay-method-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .pay-method-btn.active-wechat { border-color: #07c160; background: #f0fdf4; color: #07c160; }
+        .pay-method-btn.active-alipay { border-color: #1677ff; background: #f0f5ff; color: #1677ff; }
+        .pay-confirm-btn {
+            display: block;
+            width: 100%;
+            margin-top: 14px;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #4f46e5;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .pay-confirm-btn:hover { opacity: 0.92; }
+        .pay-tip {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #d97706;
+            min-height: 20px;
+            text-align: center;
+        }
+        .pay-success-box {
+            text-align: center;
+            padding: 24px 12px;
+            color: #16a34a;
+        }
+        .pay-success-box .icon { font-size: 52px; margin-bottom: 10px; }
+        .scan-banner {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            font-size: 14px;
+        }
+        .scan-banner.warn {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fcd34d;
+        }
+        .loading, .error-box {
+            text-align: center;
+            padding: 48px 20px;
+            color: #6b7280;
+        }
+    </style>
+    <link rel="stylesheet" href="css/med-tech.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-pages.css?v=layout1">
+    <link rel="stylesheet" href="css/med-tech-secondary.css?v=layout3">
+</head>
+<body class="med-tech-page">
+    <div class="container">
+        <div class="topbar">
+            <h1 class="nav-active">📋 支付详情</h1>
+            <button type="button" class="back-btn" id="back-btn">返回缴费列表</button>
+        </div>
+        <div id="scan-banner" style="display:none;"></div>
+        <div id="main-content">
+            <div class="loading">加载订单信息…</div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const rawId = urlParams.get('userId');
+        let userId = (!rawId || rawId === 'null' || rawId === 'undefined') ? null : rawId;
+        if (!userId) userId = sessionStorage.getItem('patientUserId');
+        const rawName = urlParams.get('userName');
+        let userName = (!rawName || rawName === 'null' || rawName === 'undefined') ? '' : rawName;
+        if (!userName) userName = sessionStorage.getItem('patientUserName') || '';
+
+        const feeId = urlParams.get('feeId');
+        let payMethod = 'wechat';
+        let pollTimer = null;
+
+        const nowText = () => {
+            const d = new Date();
+            const p = (n) => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+        };
+
+        const SCAN_PAY_ORIGIN = 'http://10.208.205.79:8081/doctor';
+
+        const buildScanUrl = (method) => {
+            const q = new URLSearchParams();
+            q.set('feeId', feeId || '');
+            if (userId) q.set('userId', userId);
+            if (userName) q.set('userName', userName);
+            q.set('method', method || payMethod || 'wechat');
+            return SCAN_PAY_ORIGIN + '/patient-payment-scan.html?' + q.toString();
+        };
+
+        const fetchFeeById = async (id) => {
+            const res = await fetch(`/doctor/feeInfo/queryByPage?feeId=${id}&page=1&size=1`, { credentials: 'include' }).then((r) => r.json());
+            if (res.code === 1 && res.content && res.content.content && res.content.content[0]) {
+                return res.content.content[0];
+            }
+            return null;
+        };
+
+        const renderDynamicQR = (scanUrl) => {
+            const canvas = document.getElementById('qr-canvas');
+            if (!canvas || typeof QRCode === 'undefined') {
+                const el = document.getElementById('qr-fallback');
+                if (el) el.textContent = '二维码库加载失败，请刷新页面';
+                return;
+            }
+            QRCode.toCanvas(canvas, scanUrl, { width: 220, margin: 2, color: { dark: '#111827', light: '#ffffff' } }, (err) => {
+                if (err) console.error(err);
+            });
+        };
+
+        const showPaidView = (order) => {
+            stopPoll();
+            $('main-content').innerHTML = `
+                <div class="card">
+                    <div class="pay-success-box">
+                        <div class="icon">✅</div>
+                        <p style="font-size:18px;font-weight:600;">支付成功</p>
+                        <p style="font-size:13px;color:#6b7280;margin-top:8px;">订单 #${order.feeId} 已完成支付</p>
+                    </div>
+                </div>
+                ${renderDetailCard(order, true)}
+            `;
+        };
+
+        const renderDetailCard = (order, hidePay) => {
+            const statusHtml = order.payStatus === 1
+                ? '<span class="status-badge status-paid">已支付</span>'
+                : '<span class="status-badge status-pending">待支付</span>';
+            return `
+                <div class="card">
+                    <h2>费用明细</h2>
+                    <p class="amount-big">¥${order.amount != null ? Number(order.amount).toFixed(2) : '0.00'}</p>
+                    <p style="text-align:center;margin-bottom:16px;">${statusHtml}</p>
+                    <dl class="detail-grid">
+                        <dt>订单编号</dt><dd>${order.feeId}</dd>
+                        <dt>费用类型</dt><dd>${order.feeType || '-'}</dd>
+                        <dt>病历编号</dt><dd>${order.recordNo || '-'}</dd>
+                        <dt>患者姓名</dt><dd>${order.patientName || userName || '-'}</dd>
+                        <dt>患者 ID</dt><dd>${order.patientId || userId || '-'}</dd>
+                        <dt>医生 ID</dt><dd>${order.doctorId != null ? order.doctorId : '-'}</dd>
+                        <dt>病历 ID</dt><dd>${order.recordId != null ? order.recordId : '-'}</dd>
+                        <dt>支付方式</dt><dd>${order.payMethod || (order.payStatus === 1 ? '-' : '待选择')}</dd>
+                        <dt>支付时间</dt><dd>${order.payTime || '-'}</dd>
+                    </dl>
+                </div>
+                ${hidePay ? '' : renderPayCard()}
+            `;
+        };
+
+        const renderPayCard = () => `
+            <div class="card" id="pay-card">
+                <h2>扫码支付</h2>
+                <div class="pay-method-tabs">
+                    <button type="button" class="pay-method-btn active-wechat" id="btn-wechat">微信支付</button>
+                    <button type="button" class="pay-method-btn" id="btn-alipay">支付宝</button>
+                </div>
+                <div class="qr-wrap">
+                    <canvas id="qr-canvas" width="220" height="220" aria-label="支付二维码"></canvas>
+                    <p class="qr-hint" id="qr-hint">请使用微信扫描上方二维码完成支付</p>
+                    <p class="qr-url" id="qr-url"></p>
+                    <p id="qr-fallback" style="color:#dc2626;font-size:13px;"></p>
+                </div>
+                <button type="button" class="pay-confirm-btn" id="confirm-btn">确认已支付</button>
+                <p class="pay-tip" id="pay-tip"></p>
+            </div>
+        `;
+
+        const bindPayEvents = (order) => {
+            const urlEl = $('qr-url');
+            const scanUrl = buildScanUrl(payMethod);
+            if (urlEl) urlEl.textContent = scanUrl;
+            renderDynamicQR(scanUrl);
+
+            const wechatBtn = $('btn-wechat');
+            const alipayBtn = $('btn-alipay');
+            const hint = $('qr-hint');
+
+            const setMethod = (m) => {
+                payMethod = m;
+                wechatBtn.className = 'pay-method-btn' + (m === 'wechat' ? ' active-wechat' : '');
+                alipayBtn.className = 'pay-method-btn' + (m === 'alipay' ? ' active-alipay' : '');
+                if (hint) hint.textContent = '请使用' + (m === 'wechat' ? '微信' : '支付宝') + '扫描上方二维码完成支付';
+                const nextUrl = buildScanUrl(m);
+                if (urlEl) urlEl.textContent = nextUrl;
+                renderDynamicQR(nextUrl);
+            };
+            wechatBtn && wechatBtn.addEventListener('click', () => setMethod('wechat'));
+            alipayBtn && alipayBtn.addEventListener('click', () => setMethod('alipay'));
+
+            $('confirm-btn') && $('confirm-btn').addEventListener('click', () => confirmPay(order.feeId));
+            startPoll(order.feeId);
+        };
+
+        const renderPendingView = (order) => {
+            $('main-content').innerHTML = renderDetailCard(order, false);
+            bindPayEvents(order);
+        };
+
+        const startPoll = (id) => {
+            stopPoll();
+            pollTimer = setInterval(async () => {
+                try {
+                    const fresh = await fetchFeeById(id);
+                    if (fresh && fresh.payStatus === 1) showPaidView(fresh);
+                } catch (e) {
+                    console.error(e);
+                }
+            }, 2000);
+        };
+
+        const stopPoll = () => {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        };
+
+        const confirmPay = async (id) => {
+            const tip = $('pay-tip');
+            try {
+                const order = await fetchFeeById(id);
+                if (!order) {
+                    if (tip) tip.textContent = '未找到该订单';
+                    return;
+                }
+                if (order.payStatus === 1) {
+                    showPaidView(order);
+                    return;
+                }
+                if (tip) tip.textContent = '尚未检测到支付完成，请先扫码；支付成功后会自动刷新，或再次点击本按钮。';
+            } catch (e) {
+                if (tip) tip.textContent = '查询失败，请稍后重试';
+            }
+        };
+
+        const handleScanEntry = async () => {
+            if (urlParams.get('scanPay') !== '1' || !feeId) return;
+            const banner = $('scan-banner');
+            banner.style.display = 'block';
+            banner.className = 'scan-banner';
+            banner.textContent = '正在处理扫码支付…';
+
+            try {
+                const res = await fetch('/doctor/feeInfo/scanPay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feeId: parseInt(feeId, 10),
+                        patientId: userId ? parseInt(userId, 10) : null,
+                        payMethod: '扫码支付',
+                        payTime: nowText()
+                    }),
+                    credentials: 'include'
+                }).then((r) => r.json());
+
+                if (res.code === 1) {
+                    banner.textContent = '✅ ' + (res.msg || '支付成功');
+                } else {
+                    banner.className = 'scan-banner warn';
+                    banner.textContent = '⚠️ ' + (res.msg || '未能更新支付状态');
+                }
+            } catch (e) {
+                banner.className = 'scan-banner warn';
+                banner.textContent = '⚠️ 网络错误';
+            }
+
+            urlParams.delete('scanPay');
+            const qs = urlParams.toString();
+            window.history.replaceState({}, document.title, qs ? window.location.pathname + '?' + qs : window.location.pathname);
+        };
+
+        $('back-btn').addEventListener('click', () => {
+            window.location.href = `patient-payment.html?userId=${encodeURIComponent(userId || '')}&userName=${encodeURIComponent(userName || '')}`;
+        });
+
+        (async () => {
+            if (!feeId) {
+                $('main-content').innerHTML = '<div class="error-box">缺少订单号 feeId</div>';
+                return;
+            }
+            await handleScanEntry();
+            const order = await fetchFeeById(feeId);
+            if (!order) {
+                $('main-content').innerHTML = '<div class="error-box">订单不存在或无权查看</div>';
+                return;
+            }
+            if (order.payStatus === 1) showPaidView(order);
+            else renderPendingView(order);
+        })();
+    </script>
+</body>
+</html>
